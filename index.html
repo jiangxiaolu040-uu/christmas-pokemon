@@ -932,19 +932,21 @@
             img.src = 'image2.jpg'; // 替换为你的图片2
             
             img.onload = () => {
-                const maxWidth = window.innerWidth * 0.8;
-                const maxHeight = window.innerHeight * 0.6;
+                const maxWidth = window.innerWidth;
+                const maxHeight = window.innerHeight;
                 let width = img.width;
                 let height = img.height;
 
-                if (width > maxWidth) {
-                    height = (maxWidth / width) * height;
-                    width = maxWidth;
-                }
-                if (height > maxHeight) {
-                    width = (maxHeight / height) * width;
-                    height = maxHeight;
-                }
+               /* 
+	if (width > maxWidth) {
+    	height = (maxWidth / width) * height;
+    	width = maxWidth;
+	}
+	if (height > maxHeight) {
+    	width = (maxHeight / height) * width;
+    	height = maxHeight;
+	}
+	*/
 
                 imageCanvas.width = width;
                 imageCanvas.height = height;
