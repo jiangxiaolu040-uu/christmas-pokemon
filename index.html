@@ -937,6 +937,15 @@
                 let width = img.width;
                 let height = img.height;
 
+				if (width > maxWidth) {
+    				height = (maxWidth / width) * height;
+    				width = maxWidth;
+				}
+				if (height > maxHeight) {
+				    width = (maxHeight / height) * width;
+				    height = maxHeight;
+				}
+
                 imageCanvas.width = width;
                 imageCanvas.height = height;
                 scratchCanvas.width = width;
