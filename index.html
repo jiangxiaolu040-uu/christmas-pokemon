@@ -1057,6 +1057,7 @@
             // 设置绘图模式
             const ctx = scratchCanvas.getContext('2d');
             ctx.globalCompositeOperation = 'source-over';
+			ctx.clearRect(0, 0, scratchCanvas.width, scratchCanvas.height); // 清除灰色层
 
             let isDrawing = false;
 
@@ -1126,7 +1127,7 @@
             isDrawingMode = false;
             document.getElementById('drawingTools').classList.remove('active');
             document.querySelector('.progress-bar').style.display = 'block';
-            initScratchCard(); // 重新初始化刮刮乐
+            
         });
 
         // 按钮3 - 反馈表单
