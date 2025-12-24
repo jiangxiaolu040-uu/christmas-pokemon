@@ -1,0 +1,1163 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>互动体验</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Luckiest+Guy&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --pokemon-red: #FF0000;
+            --pokemon-yellow: #FFDE00;
+            --pokemon-blue: #3B4CCA;
+            --christmas-red: #C41E3A;
+            --christmas-green: #165B33;
+            --christmas-gold: #FFD700;
+            --snow-white: #FFFFFF;
+            --dark: #2C3539;
+        }
+
+        body {
+            font-family: 'Luckiest Guy', cursive;
+            overflow: hidden;
+            background: linear-gradient(180deg, #1a4d2e 0%, #0d2818 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        /* 圣诞雪花背景 */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle, white 1px, transparent 1px),
+                radial-gradient(circle, white 1px, transparent 1px);
+            background-size: 50px 50px, 80px 80px;
+            background-position: 0 0, 40px 40px;
+            animation: snowfall 20s linear infinite;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        @keyframes snowfall {
+            from {
+                background-position: 0 0, 40px 40px;
+            }
+            to {
+                background-position: 0 100vh, 40px calc(100vh + 40px);
+            }
+        }
+
+        /* 宝可梦球装饰 */
+        .pokeball-deco {
+            position: fixed;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 4px solid var(--dark);
+            background: linear-gradient(180deg, var(--pokemon-red) 50%, white 50%);
+            opacity: 0.2;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .pokeball-deco::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 16px;
+            height: 16px;
+            background: white;
+            border: 4px solid var(--dark);
+            border-radius: 50%;
+        }
+
+        .pokeball-deco:nth-child(1) { top: 10%; left: 10%; animation-delay: 0s; }
+        .pokeball-deco:nth-child(2) { top: 20%; right: 15%; animation-delay: 2s; }
+        .pokeball-deco:nth-child(3) { bottom: 15%; left: 8%; animation-delay: 4s; }
+        .pokeball-deco:nth-child(4) { bottom: 25%; right: 12%; animation-delay: 1s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(10deg); }
+        }
+
+        /* 圣诞装饰 */
+        .christmas-lights {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 30px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .light {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: blink 1.5s ease-in-out infinite;
+        }
+
+        .light:nth-child(odd) { 
+            background: var(--pokemon-red); 
+            box-shadow: 0 0 10px var(--pokemon-red);
+        }
+        .light:nth-child(even) { 
+            background: var(--christmas-green); 
+            box-shadow: 0 0 10px var(--christmas-green);
+        }
+        .light:nth-child(3n) { 
+            background: var(--pokemon-yellow); 
+            box-shadow: 0 0 10px var(--pokemon-yellow);
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* 音乐控制器 - 宝可梦球风格 */
+        .music-control {
+            position: fixed;
+            top: 50px;
+            right: 30px;
+            z-index: 1000;
+            background: white;
+            padding: 8px;
+            border-radius: 50%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 -3px 0 rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            border: 5px solid var(--dark);
+            transition: all 0.3s ease;
+        }
+
+        .music-control:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 40px rgba(255, 0, 0, 0.4), inset 0 -3px 0 rgba(0,0,0,0.2);
+        }
+
+        .music-control button {
+            background: linear-gradient(180deg, var(--pokemon-red) 50%, white 50%);
+            border: 4px solid var(--dark);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            position: relative;
+        }
+
+        .music-control button::after {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            background: white;
+            border: 3px solid var(--dark);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .music-control button:hover {
+            transform: scale(1.1) rotate(15deg);
+        }
+
+        .music-control span {
+            font-size: 11px;
+            color: var(--dark);
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        /* 页面容器 */
+        .page {
+            display: none;
+            width: 100%;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+            animation: fadeIn 0.8s ease;
+        }
+
+        .page.active {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) rotate(-2deg);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) rotate(0deg);
+            }
+        }
+
+        /* 第一页 - 初始图片 */
+        #page1 {
+            cursor: pointer;
+        }
+
+        #page1 img {
+            max-width: 75%;
+            max-height: 75vh;
+            border-radius: 30px;
+            box-shadow: 
+                0 0 0 8px var(--christmas-red),
+                0 0 0 16px var(--snow-white),
+                0 0 0 24px var(--christmas-green),
+                0 25px 80px rgba(0, 0, 0, 0.5);
+            transition: all 0.4s ease;
+            border: 8px solid var(--christmas-gold);
+        }
+
+        #page1 img:hover {
+            transform: scale(1.03) rotate(-1deg);
+            box-shadow: 
+                0 0 0 8px var(--christmas-red),
+                0 0 0 16px var(--snow-white),
+                0 0 0 24px var(--christmas-green),
+                0 30px 100px rgba(255, 0, 0, 0.6);
+        }
+
+        #page1 .hint {
+            position: absolute;
+            bottom: 80px;
+            color: var(--pokemon-yellow);
+            font-size: 28px;
+            font-weight: bold;
+            text-shadow: 
+                3px 3px 0 var(--christmas-red),
+                -1px -1px 0 var(--dark),
+                1px -1px 0 var(--dark),
+                -1px 1px 0 var(--dark),
+                1px 1px 0 var(--dark),
+                0 0 20px rgba(255, 222, 0, 0.8);
+            animation: bounce 1.5s infinite;
+            font-family: 'Luckiest Guy', cursive;
+            letter-spacing: 2px;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        /* 第二页 - 刮刮乐 */
+        #page2 {
+            position: relative;
+        }
+
+        .canvas-container {
+            position: relative;
+            max-width: 75%;
+            max-height: 60vh;
+            border-radius: 30px;
+            box-shadow: 
+                0 0 0 6px var(--pokemon-yellow),
+                0 0 0 12px var(--christmas-red),
+                0 0 0 18px var(--pokemon-yellow),
+                0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        #imageCanvas {
+            border-radius: 24px;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.2);
+        }
+
+        #scratchCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="14" fill="%23FFD700" stroke="%23C41E3A" stroke-width="3"/><circle cx="16" cy="16" r="6" fill="%23FF0000"/></svg>') 16 16, crosshair;
+            border-radius: 24px;
+        }
+
+        .progress-bar {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--pokemon-red) 0%, var(--christmas-red) 100%);
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            box-shadow: 
+                0 0 0 4px var(--pokemon-yellow),
+                0 6px 20px rgba(0, 0, 0, 0.3);
+            font-family: 'Press Start 2P', cursive;
+            letter-spacing: 1px;
+            text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        .progress-bar span {
+            color: var(--pokemon-yellow);
+            font-size: 18px;
+        }
+
+        /* 按钮组 - 宝可梦球样式 */
+        .button-group {
+            position: absolute;
+            bottom: 60px;
+            display: flex;
+            gap: 30px;
+        }
+
+        .action-btn {
+            background: linear-gradient(180deg, var(--pokemon-red) 50%, white 50%);
+            border: 6px solid var(--dark);
+            padding: 0;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            font-size: 36px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 
+                0 8px 0 var(--christmas-green),
+                0 8px 24px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+            color: white;
+            font-family: 'Press Start 2P', cursive;
+            position: relative;
+            text-shadow: 
+                2px 2px 0 var(--dark),
+                -1px -1px 0 var(--dark);
+        }
+
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            background: white;
+            border: 5px solid var(--dark);
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        .action-btn::after {
+            content: attr(data-number);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            font-size: 16px;
+            color: var(--dark);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-8px) scale(1.1) rotate(5deg);
+            box-shadow: 
+                0 12px 0 var(--christmas-green),
+                0 16px 32px rgba(255, 0, 0, 0.5);
+        }
+
+        .action-btn:active {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 
+                0 4px 0 var(--christmas-green),
+                0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .action-btn.btn-0 { 
+            animation: wiggle 3s ease-in-out infinite;
+            animation-delay: 0s;
+            /* 按钮0 - 红色宝可梦球 */
+            background: linear-gradient(180deg, #FF0000 50%, white 50%);
+            box-shadow: 
+                0 8px 0 #8B0000,
+                0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+        
+        .action-btn.btn-0:hover {
+            box-shadow: 
+                0 12px 0 #8B0000,
+                0 16px 32px rgba(255, 0, 0, 0.5);
+        }
+        
+        .action-btn.btn-1 { 
+            animation: wiggle 3s ease-in-out infinite;
+            animation-delay: 1s;
+            /* 按钮1 - 蓝色宝可梦球 */
+            background: linear-gradient(180deg, #3B4CCA 50%, white 50%);
+            box-shadow: 
+                0 8px 0 #1e3a8a,
+                0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+        
+        .action-btn.btn-1:hover {
+            box-shadow: 
+                0 12px 0 #1e3a8a,
+                0 16px 32px rgba(59, 76, 202, 0.5);
+        }
+        
+        .action-btn.btn-3 { 
+            animation: wiggle 3s ease-in-out infinite;
+            animation-delay: 2s;
+            /* 按钮3 - 金色宝可梦球 */
+            background: linear-gradient(180deg, #FFD700 50%, white 50%);
+            box-shadow: 
+                0 8px 0 #ea580c,
+                0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+        
+        .action-btn.btn-3:hover {
+            box-shadow: 
+                0 12px 0 #ea580c,
+                0 16px 32px rgba(255, 215, 0, 0.5);
+        }
+
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-5deg); }
+            75% { transform: rotate(5deg); }
+        }
+
+        /* 弹窗 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(180deg, #ffffff 0%, #ffe6e6 100%);
+            padding: 40px;
+            border-radius: 30px;
+            max-width: 550px;
+            width: 90%;
+            box-shadow: 
+                0 0 0 8px var(--christmas-red),
+                0 0 0 16px var(--pokemon-yellow),
+                0 25px 80px rgba(0, 0, 0, 0.5);
+            animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 6px solid var(--christmas-green);
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(0.5) rotate(-10deg);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) rotate(0deg);
+            }
+        }
+
+        .modal-content h2 {
+            color: var(--christmas-red);
+            margin-bottom: 25px;
+            font-size: 32px;
+            font-family: 'Luckiest Guy', cursive;
+            text-shadow: 3px 3px 0 var(--pokemon-yellow);
+            letter-spacing: 2px;
+        }
+
+        .modal-content p {
+            line-height: 1.9;
+            color: var(--dark);
+            margin-bottom: 18px;
+            font-size: 18px;
+            font-family: 'Arial', sans-serif;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 15px;
+            border-radius: 15px;
+            border-left: 5px solid var(--christmas-green);
+        }
+
+        .close-btn {
+            background: linear-gradient(135deg, var(--christmas-red) 0%, var(--pokemon-red) 100%);
+            color: white;
+            border: 4px solid var(--dark);
+            padding: 15px 40px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 25px;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 0 var(--dark), 0 8px 20px rgba(0, 0, 0, 0.3);
+            font-family: 'Luckiest Guy', cursive;
+            letter-spacing: 1px;
+        }
+
+        .close-btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 0 var(--dark), 0 12px 25px rgba(196, 30, 58, 0.5);
+        }
+
+        .close-btn:active {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 0 var(--dark), 0 6px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 绘图模式 */
+        .drawing-tools {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(180deg, #ffffff 0%, #fff4e6 100%);
+            padding: 20px;
+            border-radius: 25px;
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 
+                0 0 0 5px var(--pokemon-yellow),
+                0 0 0 10px var(--christmas-red),
+                0 12px 40px rgba(0, 0, 0, 0.3);
+            border: 4px solid var(--dark);
+        }
+
+        .drawing-tools.active {
+            display: flex;
+            animation: slideInLeft 0.5s ease;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .drawing-tools h4 {
+            color: var(--christmas-red);
+            font-size: 16px;
+            margin-bottom: 8px;
+            font-family: 'Press Start 2P', cursive;
+            text-shadow: 1px 1px 0 var(--pokemon-yellow);
+        }
+
+        .color-palette {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .color-btn {
+            width: 40px;
+            height: 40px;
+            border: 4px solid transparent;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .color-btn:hover {
+            transform: scale(1.15) rotate(10deg);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .color-btn.active {
+            border-color: var(--dark);
+            transform: scale(1.2);
+            box-shadow: 
+                0 0 0 2px var(--pokemon-yellow),
+                0 6px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .brush-size {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+            background: rgba(255, 255, 255, 0.6);
+            padding: 10px;
+            border-radius: 15px;
+        }
+
+        .brush-size input {
+            width: 100%;
+            accent-color: var(--christmas-red);
+            height: 8px;
+            border-radius: 5px;
+        }
+
+        .tool-btn {
+            background: linear-gradient(135deg, var(--christmas-green) 0%, #0d8c4a 100%);
+            color: white;
+            border: 3px solid var(--dark);
+            padding: 12px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 0 var(--dark), 0 6px 15px rgba(0, 0, 0, 0.2);
+            font-family: 'Luckiest Guy', cursive;
+        }
+
+        .tool-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 0 var(--dark), 0 9px 20px rgba(22, 91, 51, 0.4);
+        }
+
+        .tool-btn:active {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 0 var(--dark), 0 5px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 反馈表单 */
+        .feedback-form textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 18px;
+            border: 4px solid var(--christmas-green);
+            border-radius: 20px;
+            font-size: 16px;
+            font-family: 'Arial', sans-serif;
+            resize: vertical;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .feedback-form textarea:focus {
+            outline: none;
+            border-color: var(--pokemon-red);
+            box-shadow: 
+                0 0 0 3px var(--pokemon-yellow),
+                inset 0 2px 8px rgba(0, 0, 0, 0.1);
+            transform: scale(1.02);
+        }
+
+        .char-count {
+            text-align: right;
+            font-size: 16px;
+            color: var(--christmas-green);
+            margin-bottom: 15px;
+            font-weight: bold;
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        .feedback-form .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--pokemon-blue) 0%, var(--pokemon-red) 100%);
+            color: white;
+            border: 4px solid var(--dark);
+            padding: 18px;
+            border-radius: 25px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 0 var(--dark), 0 8px 20px rgba(0, 0, 0, 0.3);
+            font-family: 'Luckiest Guy', cursive;
+            letter-spacing: 1px;
+        }
+
+        .feedback-form .submit-btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 0 var(--dark), 0 12px 25px rgba(59, 76, 202, 0.5);
+        }
+
+        .feedback-form .submit-btn:active {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 0 var(--dark), 0 6px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .feedback-form .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- 宝可梦球装饰 -->
+    <div class="pokeball-deco"></div>
+    <div class="pokeball-deco"></div>
+    <div class="pokeball-deco"></div>
+    <div class="pokeball-deco"></div>
+
+    <!-- 圣诞彩灯 -->
+    <div class="christmas-lights">
+        <div class="light"></div>
+        <div class="light"></div>
+        <div class="light"></div>
+        <div class="light"></div>
+        <div class="light"></div>
+        <div class="light"></div>
+        <div class="light"></div>
+        <div class="light"></div>
+        <div class="light"></div>
+        <div class="light"></div>
+        <div class="light"></div>
+        <div class="light"></div>
+    </div>
+
+    <!-- 音乐控制器 -->
+    <div class="music-control">
+        <span>BGM</span>
+        <button id="musicToggle" title="播放/暂停">▶</button>
+    </div>
+
+    <!-- 第一页 - 初始图片 -->
+    <div id="page1" class="page active">
+        <img src="image1.jpg" alt="点击进入" id="image1">
+        <div class="hint">⭐ CLICK TO START ⭐</div>
+    </div>
+
+    <!-- 第二页 - 刮刮乐和交互 -->
+    <div id="page2" class="page">
+        <div class="canvas-container">
+            <canvas id="imageCanvas"></canvas>
+            <canvas id="scratchCanvas"></canvas>
+            <div class="progress-bar">REVEALED: <span id="progress">0</span>%</div>
+        </div>
+
+        <!-- 绘图工具 -->
+        <div class="drawing-tools" id="drawingTools">
+            <h4>COLORS</h4>
+            <div class="color-palette">
+                <div class="color-btn active" style="background: #ff6b6b;" data-color="#ff6b6b"></div>
+                <div class="color-btn" style="background: #4ecdc4;" data-color="#4ecdc4"></div>
+                <div class="color-btn" style="background: #ffe66d;" data-color="#ffe66d"></div>
+                <div class="color-btn" style="background: #a8e6cf;" data-color="#a8e6cf"></div>
+                <div class="color-btn" style="background: #ff8b94;" data-color="#ff8b94"></div>
+                <div class="color-btn" style="background: #c7ceea;" data-color="#c7ceea"></div>
+                <div class="color-btn" style="background: #ffd3b6;" data-color="#ffd3b6"></div>
+                <div class="color-btn" style="background: #dcedc1;" data-color="#dcedc1"></div>
+                <div class="color-btn" style="background: #000000;" data-color="#000000"></div>
+                <div class="color-btn" style="background: #ffffff; border: 1px solid #ccc;" data-color="#ffffff"></div>
+            </div>
+            <div class="brush-size">
+                <span style="font-size: 12px;">🖌️</span>
+                <input type="range" id="brushSize" min="5" max="50" value="15">
+                <span style="font-size: 24px;">🖌️</span>
+            </div>
+            <button class="tool-btn" id="clearDrawing">CLEAR</button>
+            <button class="tool-btn" id="exitDrawing">EXIT</button>
+        </div>
+
+        <!-- 按钮组 -->
+        <div class="button-group">
+            <button class="action-btn btn-0" id="btn0" data-number="0"></button>
+            <button class="action-btn btn-1" id="btn1" data-number="1"></button>
+            <button class="action-btn btn-3" id="btn3" data-number="3"></button>
+        </div>
+    </div>
+
+    <!-- 文字弹窗 -->
+    <div class="modal" id="textModal">
+        <div class="modal-content">
+            <h2>🎄 SPECIAL MESSAGE 🎁</h2>
+            <div id="textContent">
+                <p>这是第一段文字内容，你可以在这里写任何想说的话。</p>
+                <p>这是第二段文字内容，可以是祝福、感谢或者其他任何内容。</p>
+                <p>这是第三段文字内容，让这个页面更有意义。</p>
+            </div>
+            <button class="close-btn" onclick="closeModal('textModal')">CLOSE</button>
+        </div>
+    </div>
+
+    <!-- 反馈弹窗 -->
+    <div class="modal" id="feedbackModal">
+        <div class="modal-content">
+            <h2>⭐ YOUR MESSAGE ⭐</h2>
+            <form class="feedback-form" id="feedbackForm">
+                <textarea 
+                    id="feedbackText" 
+                    placeholder="Write your message here..." 
+                    maxlength="100"
+                ></textarea>
+                <div class="char-count">
+                    <span id="charCount">0</span>/100
+                </div>
+                <button type="submit" class="submit-btn">SEND</button>
+            </form>
+            <button class="close-btn" onclick="closeModal('feedbackModal')">CANCEL</button>
+        </div>
+    </div>
+
+    <!-- 音频元素 -->
+    <audio id="bgMusic" loop>
+        <source src="jingle-bells-christmas-454754.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // 全局变量
+        let isDrawingMode = false;
+        let currentColor = '#ff6b6b';
+        let brushSize = 15;
+        const music = document.getElementById('bgMusic');
+        const musicToggle = document.getElementById('musicToggle');
+        let isMusicPlaying = false;
+
+        // 随机文字库 - 在这里添加你想要的句子
+        const messageLibrary = [
+            "🎄 Merry Christmas! 愿你的每一天都充满欢乐和惊喜！",
+            "⚡ 像宝可梦训练师一样，勇敢追逐你的梦想！",
+            "🎁 这个圣诞节，愿所有美好的事情都发生在你身上！",
+            "✨ 你就像稀有的闪光宝可梦一样特别！",
+            "🎅 圣诞老人说：你今年表现很棒，值得所有的礼物！",
+            "💫 新的一年，让我们一起成为更好的自己！",
+            "🌟 相信自己，你拥有无限的可能性！",
+            "🎊 愿你的生活像圣诞彩灯一样闪耀多彩！",
+            "⭐ 每一个寒冷的冬日，都因为有你而温暖！",
+            "🔥 保持热情，像喷火龙一样燃烧你的激情！",
+            "💝 感谢有你，让这个世界变得更美好！",
+            "🎯 2025，让我们一起捕获更多的幸福时刻！",
+            "🌈 风雨过后总会有彩虹，加油！",
+            "🎪 人生就像一场冒险，享受每一个瞬间！",
+            "💪 你比自己想象的更强大，继续前进吧！"
+        ];
+
+        // 随机获取一条消息
+        function getRandomMessage() {
+            const randomIndex = Math.floor(Math.random() * messageLibrary.length);
+            return messageLibrary[randomIndex];
+        }
+
+        // 音乐控制
+        musicToggle.addEventListener('click', () => {
+            if (isMusicPlaying) {
+                music.pause();
+                musicToggle.textContent = '▶';
+            } else {
+                music.play().catch(e => {
+                    alert('音乐播放失败，请检查音频文件路径');
+                });
+                musicToggle.textContent = '⏸';
+            }
+            isMusicPlaying = !isMusicPlaying;
+        });
+
+        // 页面切换
+        document.getElementById('image1').addEventListener('click', () => {
+            document.getElementById('page1').classList.remove('active');
+            document.getElementById('page2').classList.add('active');
+            initScratchCard();
+        });
+
+        // 刮刮乐功能
+        function initScratchCard() {
+            const imageCanvas = document.getElementById('imageCanvas');
+            const scratchCanvas = document.getElementById('scratchCanvas');
+            const imageCtx = imageCanvas.getContext('2d');
+            const scratchCtx = scratchCanvas.getContext('2d');
+            const progressSpan = document.getElementById('progress');
+
+            const img = new Image();
+            img.src = 'image2.jpg'; // 替换为你的图片2
+            
+            img.onload = () => {
+                const maxWidth = window.innerWidth * 0.8;
+                const maxHeight = window.innerHeight * 0.6;
+                let width = img.width;
+                let height = img.height;
+
+                if (width > maxWidth) {
+                    height = (maxWidth / width) * height;
+                    width = maxWidth;
+                }
+                if (height > maxHeight) {
+                    width = (maxHeight / height) * width;
+                    height = maxHeight;
+                }
+
+                imageCanvas.width = width;
+                imageCanvas.height = height;
+                scratchCanvas.width = width;
+                scratchCanvas.height = height;
+
+                imageCtx.drawImage(img, 0, 0, width, height);
+
+                // 灰色遮罩
+                scratchCtx.fillStyle = '#808080';
+                scratchCtx.fillRect(0, 0, width, height);
+
+                let isScratching = false;
+                let scratchedPixels = 0;
+                const totalPixels = width * height;
+
+                function scratch(e) {
+                    if (!isScratching && !isDrawingMode) return;
+
+                    const rect = scratchCanvas.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+
+                    scratchCtx.globalCompositeOperation = 'destination-out';
+                    scratchCtx.beginPath();
+                    scratchCtx.arc(x, y, 30, 0, Math.PI * 2);
+                    scratchCtx.fill();
+
+                    updateProgress();
+                }
+
+                function updateProgress() {
+                    const imageData = scratchCtx.getImageData(0, 0, width, height);
+                    let transparentPixels = 0;
+
+                    for (let i = 3; i < imageData.data.length; i += 4) {
+                        if (imageData.data[i] === 0) transparentPixels++;
+                    }
+
+                    const percentage = Math.round((transparentPixels / totalPixels) * 100);
+                    progressSpan.textContent = percentage;
+                }
+
+                scratchCanvas.addEventListener('mousedown', (e) => {
+                    if (!isDrawingMode) {
+                        isScratching = true;
+                        scratch(e);
+                    }
+                });
+
+                scratchCanvas.addEventListener('mousemove', scratch);
+
+                scratchCanvas.addEventListener('mouseup', () => {
+                    isScratching = false;
+                });
+
+                scratchCanvas.addEventListener('mouseleave', () => {
+                    isScratching = false;
+                });
+
+                // 触摸支持
+                scratchCanvas.addEventListener('touchstart', (e) => {
+                    if (!isDrawingMode) {
+                        isScratching = true;
+                        const touch = e.touches[0];
+                        scratch({
+                            clientX: touch.clientX,
+                            clientY: touch.clientY
+                        });
+                    }
+                    e.preventDefault();
+                });
+
+                scratchCanvas.addEventListener('touchmove', (e) => {
+                    if (isScratching) {
+                        const touch = e.touches[0];
+                        scratch({
+                            clientX: touch.clientX,
+                            clientY: touch.clientY
+                        });
+                    }
+                    e.preventDefault();
+                });
+
+                scratchCanvas.addEventListener('touchend', () => {
+                    isScratching = false;
+                });
+            };
+
+            img.onerror = () => {
+                alert('图片2加载失败，请检查文件路径');
+            };
+        }
+
+        // 按钮0 - 显示随机文字
+        document.getElementById('btn0').addEventListener('click', () => {
+            const randomMessage = getRandomMessage();
+            document.getElementById('textContent').innerHTML = `<p>${randomMessage}</p>`;
+            document.getElementById('textModal').classList.add('active');
+        });
+
+        // 按钮1 - 绘图模式
+        document.getElementById('btn1').addEventListener('click', () => {
+            isDrawingMode = true;
+            document.getElementById('drawingTools').classList.add('active');
+            document.querySelector('.progress-bar').style.display = 'none';
+            const scratchCanvas = document.getElementById('scratchCanvas');
+            scratchCanvas.style.cursor = 'crosshair';
+
+            // 设置绘图模式
+            const ctx = scratchCanvas.getContext('2d');
+            ctx.globalCompositeOperation = 'source-over';
+
+            let isDrawing = false;
+
+            function draw(e) {
+                if (!isDrawing) return;
+
+                const rect = scratchCanvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                ctx.strokeStyle = currentColor;
+                ctx.lineWidth = brushSize;
+                ctx.lineCap = 'round';
+                ctx.lineTo(x, y);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+            }
+
+            scratchCanvas.addEventListener('mousedown', (e) => {
+                if (isDrawingMode) {
+                    isDrawing = true;
+                    const rect = scratchCanvas.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    ctx.beginPath();
+                    ctx.moveTo(x, y);
+                }
+            });
+
+            scratchCanvas.addEventListener('mousemove', draw);
+
+            scratchCanvas.addEventListener('mouseup', () => {
+                isDrawing = false;
+                ctx.beginPath();
+            });
+
+            scratchCanvas.addEventListener('mouseleave', () => {
+                isDrawing = false;
+                ctx.beginPath();
+            });
+        });
+
+        // 颜色选择
+        document.querySelectorAll('.color-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentColor = this.dataset.color;
+            });
+        });
+
+        // 画笔大小
+        document.getElementById('brushSize').addEventListener('input', function() {
+            brushSize = this.value;
+        });
+
+        // 清除绘图
+        document.getElementById('clearDrawing').addEventListener('click', () => {
+            const scratchCanvas = document.getElementById('scratchCanvas');
+            const ctx = scratchCanvas.getContext('2d');
+            ctx.clearRect(0, 0, scratchCanvas.width, scratchCanvas.height);
+        });
+
+        // 退出绘图模式
+        document.getElementById('exitDrawing').addEventListener('click', () => {
+            isDrawingMode = false;
+            document.getElementById('drawingTools').classList.remove('active');
+            document.querySelector('.progress-bar').style.display = 'block';
+            initScratchCard(); // 重新初始化刮刮乐
+        });
+
+        // 按钮3 - 反馈表单
+        document.getElementById('btn3').addEventListener('click', () => {
+            document.getElementById('feedbackModal').classList.add('active');
+        });
+
+        // 字数统计
+        document.getElementById('feedbackText').addEventListener('input', function() {
+            document.getElementById('charCount').textContent = this.value.length;
+        });
+
+        // 表单提交
+        document.getElementById('feedbackForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const feedback = document.getElementById('feedbackText').value;
+            
+            if (feedback.trim() === '') {
+                alert('请输入反馈内容');
+                return;
+            }
+
+            // 这里需要配置邮件发送服务
+            // 由于HTML无法直接发送邮件，你需要：
+            // 1. 使用EmailJS服务（免费）
+            // 2. 或者创建后端API来处理邮件发送
+            
+            alert('感谢你的反馈！\n\n实际使用时，请配置邮件发送服务：\n1. 使用EmailJS服务\n2. 或创建后端API处理邮件');
+            
+            // EmailJS示例代码（需要注册EmailJS并配置）:
+            // emailjs.send("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", {
+            //     message: feedback,
+            //     to_email: "your-email@example.com"
+            // });
+
+            document.getElementById('feedbackText').value = '';
+            document.getElementById('charCount').textContent = '0';
+            closeModal('feedbackModal');
+        });
+
+        // 关闭弹窗
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // 点击弹窗外部关闭
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
