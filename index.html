@@ -1135,6 +1135,7 @@
 		let lastY = 0;
 		let scratchLayerSnapshot = null; // 保存刮刮乐层的初始快照
 		let currentScratchState = null; // 保存当前刮刮乐层状态（包括刮开和绘制）
+		let beforeDrawingState = null; // 保存进入绘图模式前的状态（只有刮刮乐，用于clear）
 		let drawingStartState = null; // 保存开始绘制时的状态（用于实时预览）
 		
 		// 离屏canvas - 用于避免同一笔画内颜色重复叠加
@@ -1321,6 +1322,9 @@
 		    const ctx = scratchCanvas.getContext('2d');
 		    ctx.globalCompositeOperation = 'source-over';
 		    
+		    // 保存进入绘图前的状态（用于clear功能）
+		    beforeDrawingState = ctx.getImageData(0, 0, scratchCanvas.width, scratchCanvas.height);
+		    
 		    // ⭐ 关键：清除灰色刮刮乐层
 		    //ctx.clearRect(0, 0, scratchCanvas.width, scratch
 		    
@@ -1368,11 +1372,11 @@
             const scratchCanvas = document.getElementById('scratchCanvas');
             const ctx = scratchCanvas.getContext('2d');
             
-            // 恢复当前刮刮乐状态（保留已刮开的部分，只清除绘制内容）
-            if (currentScratchState) {
-                ctx.putImageData(currentScratchState, 0, 0);
+            // 恢复进入绘图前的状态（保留已刮开的部分，只清除绘制内容）
+            if (beforeDrawingState) {
+                ctx.putImageData(beforeDrawingState, 0, 0);
             } else if (scratchLayerSnapshot) {
-                // 如果还没有绘制过，恢复初始灰色层
+                // 如果还没有进入绘图模式，恢复初始灰色层
                 ctx.putImageData(scratchLayerSnapshot, 0, 0);
             } else {
                 // 如果都没有，则完全清除
