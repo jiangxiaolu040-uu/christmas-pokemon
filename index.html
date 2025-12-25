@@ -856,6 +856,11 @@
                 <input type="range" id="brushSize" min="5" max="50" value="15">
                 <span style="font-size: 24px;">🖌️</span>
             </div>
+            <div class="brush-size">
+                <span style="font-size: 12px;">💧</span>
+                <input type="range" id="brushOpacity" min="10" max="100" value="60">
+                <span style="font-size: 24px;">💧</span>
+            </div>
             <button class="tool-btn" id="clearDrawing">CLEAR</button>
             <button class="tool-btn" id="exitDrawing">EXIT</button>
         </div>
@@ -910,6 +915,7 @@
         let isDrawingMode = false;
         let currentColor = '#ff6b6b';
         let brushSize = 15;
+        let brushOpacity = 0.6; // 透明度，范围0.1-1.0
         const music = document.getElementById('bgMusic');
         const musicToggle = document.getElementById('musicToggle');
         let isMusicPlaying = false;
@@ -1068,6 +1074,10 @@
 
                 scratchCanvas.addEventListener('mouseup', () => {
                     isScratching = false;
+                    // 保存刮刮乐状态（用于clear功能）
+                    if (!isDrawingMode) {
+                        currentScratchState = scratchCtx.getImageData(0, 0, width, height);
+                    }
                 });
 
                 scratchCanvas.addEventListener('mouseleave', () => {
@@ -1100,6 +1110,10 @@
 
                 scratchCanvas.addEventListener('touchend', () => {
                     isScratching = false;
+                    // 保存刮刮乐状态（用于clear功能）
+                    if (!isDrawingMode) {
+                        currentScratchState = scratchCtx.getImageData(0, 0, width, height);
+                    }
                 });
             };
 
@@ -1119,7 +1133,9 @@
 		let isDrawing = false;
 		let lastX = 0;
 		let lastY = 0;
-		let scratchLayerSnapshot = null; // 保存刮刮乐层的快照
+		let scratchLayerSnapshot = null; // 保存刮刮乐层的初始快照
+		let currentScratchState = null; // 保存当前刮刮乐层状态（包括刮开和绘制）
+		let drawingStartState = null; // 保存开始绘制时的状态（用于实时预览）
 		
 		// 离屏canvas - 用于避免同一笔画内颜色重复叠加
 		let tempCanvas = document.createElement('canvas');
@@ -1137,12 +1153,16 @@
 		    if (!isDrawingMode) return;
 		    isDrawing = true;
 		    const scratchCanvas = document.getElementById('scratchCanvas');
+		    const ctx = scratchCanvas.getContext('2d');
 		    const rect = scratchCanvas.getBoundingClientRect();
 		    // 考虑缩放因素
 		    const scaleX = scratchCanvas.width / rect.width;
 		    const scaleY = scratchCanvas.height / rect.height;
 		    lastX = (e.clientX - rect.left) * scaleX;
 		    lastY = (e.clientY - rect.top) * scaleY;
+		    
+		    // 保存绘制开始时的canvas状态（用于实时预览）
+		    drawingStartState = ctx.getImageData(0, 0, scratchCanvas.width, scratchCanvas.height);
 		    
 		    // 初始化离屏canvas
 		    tempCanvas.width = scratchCanvas.width;
@@ -1153,6 +1173,7 @@
 		function handleMouseMove(e) {
 		    if (!isDrawingMode || !isDrawing) return;
 		    const scratchCanvas = document.getElementById('scratchCanvas');
+		    const ctx = scratchCanvas.getContext('2d');
 		    const rect = scratchCanvas.getBoundingClientRect();
 		    // 考虑缩放因素
 		    const scaleX = scratchCanvas.width / rect.width;
@@ -1162,7 +1183,7 @@
 		    
 		    // 在离屏canvas上用普通模式绘制（避免重复叠加）
 		    tempCtx.globalCompositeOperation = 'source-over';
-		    tempCtx.strokeStyle = hexToRgba(currentColor, 0.6);
+		    tempCtx.strokeStyle = hexToRgba(currentColor, brushOpacity);
 		    tempCtx.lineWidth = brushSize;
 		    tempCtx.lineCap = 'round';
 		    tempCtx.lineJoin = 'round';
@@ -1171,6 +1192,14 @@
 		    tempCtx.moveTo(lastX, lastY);
 		    tempCtx.lineTo(x, y);
 		    tempCtx.stroke();
+		    
+		    // 实时显示：恢复之前状态，然后临时显示当前绘制
+		    if (drawingStartState) {
+		        ctx.putImageData(drawingStartState, 0, 0);
+		    }
+		    ctx.globalCompositeOperation = 'multiply';
+		    ctx.drawImage(tempCanvas, 0, 0);
+		    ctx.globalCompositeOperation = 'source-over';
 		    
 		    lastX = x;
 		    lastY = y;
@@ -1183,11 +1212,19 @@
 		    // 将离屏canvas用multiply模式合成到主canvas
 		    const scratchCanvas = document.getElementById('scratchCanvas');
 		    const ctx = scratchCanvas.getContext('2d');
+		    
+		    // 恢复绘制开始状态
+		    if (drawingStartState) {
+		        ctx.putImageData(drawingStartState, 0, 0);
+		    }
+		    
 		    ctx.globalCompositeOperation = 'multiply';
 		    ctx.drawImage(tempCanvas, 0, 0);
-		    
-		    // 重置合成模式
 		    ctx.globalCompositeOperation = 'source-over';
+		    
+		    // 保存当前状态（包括刮开的部分和绘制的内容）
+		    currentScratchState = ctx.getImageData(0, 0, scratchCanvas.width, scratchCanvas.height);
+		    drawingStartState = null;
 		}
 		
 		// 触摸绘图事件处理
@@ -1196,6 +1233,7 @@
 		    e.preventDefault();
 		    const touch = e.touches[0];
 		    const scratchCanvas = document.getElementById('scratchCanvas');
+		    const ctx = scratchCanvas.getContext('2d');
 		    const rect = scratchCanvas.getBoundingClientRect();
 		    // 考虑缩放因素
 		    const scaleX = scratchCanvas.width / rect.width;
@@ -1203,6 +1241,9 @@
 		    lastX = (touch.clientX - rect.left) * scaleX;
 		    lastY = (touch.clientY - rect.top) * scaleY;
 		    isDrawing = true;
+		    
+		    // 保存绘制开始时的canvas状态（用于实时预览）
+		    drawingStartState = ctx.getImageData(0, 0, scratchCanvas.width, scratchCanvas.height);
 		    
 		    // 初始化离屏canvas
 		    tempCanvas.width = scratchCanvas.width;
@@ -1215,6 +1256,7 @@
 		    e.preventDefault();
 		    const touch = e.touches[0];
 		    const scratchCanvas = document.getElementById('scratchCanvas');
+		    const ctx = scratchCanvas.getContext('2d');
 		    const rect = scratchCanvas.getBoundingClientRect();
 		    // 考虑缩放因素
 		    const scaleX = scratchCanvas.width / rect.width;
@@ -1224,7 +1266,7 @@
 		    
 		    // 在离屏canvas上用普通模式绘制（避免重复叠加）
 		    tempCtx.globalCompositeOperation = 'source-over';
-		    tempCtx.strokeStyle = hexToRgba(currentColor, 0.6);
+		    tempCtx.strokeStyle = hexToRgba(currentColor, brushOpacity);
 		    tempCtx.lineWidth = brushSize;
 		    tempCtx.lineCap = 'round';
 		    tempCtx.lineJoin = 'round';
@@ -1233,6 +1275,14 @@
 		    tempCtx.moveTo(lastX, lastY);
 		    tempCtx.lineTo(x, y);
 		    tempCtx.stroke();
+		    
+		    // 实时显示：恢复之前状态，然后临时显示当前绘制
+		    if (drawingStartState) {
+		        ctx.putImageData(drawingStartState, 0, 0);
+		    }
+		    ctx.globalCompositeOperation = 'multiply';
+		    ctx.drawImage(tempCanvas, 0, 0);
+		    ctx.globalCompositeOperation = 'source-over';
 		    
 		    lastX = x;
 		    lastY = y;
@@ -1245,11 +1295,19 @@
 		    // 将离屏canvas用multiply模式合成到主canvas
 		    const scratchCanvas = document.getElementById('scratchCanvas');
 		    const ctx = scratchCanvas.getContext('2d');
+		    
+		    // 恢复绘制开始状态
+		    if (drawingStartState) {
+		        ctx.putImageData(drawingStartState, 0, 0);
+		    }
+		    
 		    ctx.globalCompositeOperation = 'multiply';
 		    ctx.drawImage(tempCanvas, 0, 0);
-		    
-		    // 重置合成模式
 		    ctx.globalCompositeOperation = 'source-over';
+		    
+		    // 保存当前状态（包括刮开的部分和绘制的内容）
+		    currentScratchState = ctx.getImageData(0, 0, scratchCanvas.width, scratchCanvas.height);
+		    drawingStartState = null;
 		}
         // 按钮1 - 绘图模式
 		document.getElementById('btn1').addEventListener('click', () => {
@@ -1300,16 +1358,24 @@
             brushSize = this.value;
         });
 
+        // 画笔透明度
+        document.getElementById('brushOpacity').addEventListener('input', function() {
+            brushOpacity = this.value / 100; // 转换为0-1的范围
+        });
+
         // 清除绘图
         document.getElementById('clearDrawing').addEventListener('click', () => {
             const scratchCanvas = document.getElementById('scratchCanvas');
             const ctx = scratchCanvas.getContext('2d');
             
-            // 恢复灰色遮罩层快照（只清除绘制内容，保留灰色层）
-            if (scratchLayerSnapshot) {
+            // 恢复当前刮刮乐状态（保留已刮开的部分，只清除绘制内容）
+            if (currentScratchState) {
+                ctx.putImageData(currentScratchState, 0, 0);
+            } else if (scratchLayerSnapshot) {
+                // 如果还没有绘制过，恢复初始灰色层
                 ctx.putImageData(scratchLayerSnapshot, 0, 0);
             } else {
-                // 如果没有快照，则完全清除
+                // 如果都没有，则完全清除
                 ctx.clearRect(0, 0, scratchCanvas.width, scratchCanvas.height);
             }
         });
