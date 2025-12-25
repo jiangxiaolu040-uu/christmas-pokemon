@@ -952,7 +952,7 @@
             "宝可梦初代有151只，皮卡丘是NO.25",
             "很好区分哪些是我写的吧~",
             "服务器正繁忙，请稍后再试",
-			"有没有可能这个页面的灰色部分可以交互??",
+			"有没有可能这个页面的灰色部分可以交互🤔",
 			"而今天正好是25号~",
 			"您的刷新次数已达上限，请于0:00后再试",
 			"⬮ ⩊ ⬮	Ϟ(๑⚈ ․̫ ⚈๑)",
@@ -1022,7 +1022,7 @@
                 // 灰色遮罩
                 scratchCtx.fillStyle = '#808080';
                 scratchCtx.fillRect(0, 0, width, height);
-\r
+
                 // 保存灰色遮罩层的快照（用于清除绘图时恢复）
                 scratchLayerSnapshot = scratchCtx.getImageData(0, 0, width, height);
 
@@ -1031,7 +1031,7 @@
                 const totalPixels = width * height;
 
                 function scratch(e) {
-                    if (!isScratching && !isDrawingMode) return;
+                    if (!isScratching || isDrawingMode) return;
 
                     const rect = scratchCanvas.getBoundingClientRect();
                     const x = e.clientX - rect.left;
@@ -1119,7 +1119,7 @@
 		let isDrawing = false;
 		let lastX = 0;
 		let lastY = 0;
-\t	let scratchLayerSnapshot = null; // 保存刮刮乐层的快照
+		let scratchLayerSnapshot = null; // 保存刮刮乐层的快照
 		
 		// 离屏canvas - 用于避免同一笔画内颜色重复叠加
 		let tempCanvas = document.createElement('canvas');
@@ -1134,123 +1134,123 @@
 		
 		
 		function handleMouseDown(e) {
-    if (!isDrawingMode) return;
-    isDrawing = true;
-    const scratchCanvas = document.getElementById('scratchCanvas');
-    const rect = scratchCanvas.getBoundingClientRect();
-    // 考虑缩放因素
-    const scaleX = scratchCanvas.width / rect.width;
-    const scaleY = scratchCanvas.height / rect.height;
-    lastX = (e.clientX - rect.left) * scaleX;
-    lastY = (e.clientY - rect.top) * scaleY;
-    
-    // 初始化离屏canvas
-    tempCanvas.width = scratchCanvas.width;
-    tempCanvas.height = scratchCanvas.height;
-    tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
-}
-
-function handleMouseMove(e) {
-    if (!isDrawingMode || !isDrawing) return;
-    const scratchCanvas = document.getElementById('scratchCanvas');
-    const rect = scratchCanvas.getBoundingClientRect();
-    // 考虑缩放因素
-    const scaleX = scratchCanvas.width / rect.width;
-    const scaleY = scratchCanvas.height / rect.height;
-    const x = (e.clientX - rect.left) * scaleX;
-    const y = (e.clientY - rect.top) * scaleY;
-    
-    // 在离屏canvas上用普通模式绘制（避免重复叠加）
-    tempCtx.globalCompositeOperation = 'source-over';
-    tempCtx.strokeStyle = hexToRgba(currentColor, 0.6);
-    tempCtx.lineWidth = brushSize;
-    tempCtx.lineCap = 'round';
-    tempCtx.lineJoin = 'round';
-    
-    tempCtx.beginPath();
-    tempCtx.moveTo(lastX, lastY);
-    tempCtx.lineTo(x, y);
-    tempCtx.stroke();
-    
-    lastX = x;
-    lastY = y;
-}
-
-function handleMouseUp() {
-    if (!isDrawing) return;
-    isDrawing = false;
-    
-    // 将离屏canvas用multiply模式合成到主canvas
-    const scratchCanvas = document.getElementById('scratchCanvas');
-    const ctx = scratchCanvas.getContext('2d');
-    ctx.globalCompositeOperation = 'multiply';
-    ctx.drawImage(tempCanvas, 0, 0);
-    
-    // 重置合成模式
-    ctx.globalCompositeOperation = 'source-over';
-}
-
-// 触摸绘图事件处理
-function handleTouchStart(e) {
-    if (!isDrawingMode) return;
-    e.preventDefault();
-    const touch = e.touches[0];
-    const scratchCanvas = document.getElementById('scratchCanvas');
-    const rect = scratchCanvas.getBoundingClientRect();
-    // 考虑缩放因素
-    const scaleX = scratchCanvas.width / rect.width;
-    const scaleY = scratchCanvas.height / rect.height;
-    lastX = (touch.clientX - rect.left) * scaleX;
-    lastY = (touch.clientY - rect.top) * scaleY;
-    isDrawing = true;
-    
-    // 初始化离屏canvas
-    tempCanvas.width = scratchCanvas.width;
-    tempCanvas.height = scratchCanvas.height;
-    tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
-}
-
-function handleTouchMove(e) {
-    if (!isDrawingMode || !isDrawing) return;
-    e.preventDefault();
-    const touch = e.touches[0];
-    const scratchCanvas = document.getElementById('scratchCanvas');
-    const rect = scratchCanvas.getBoundingClientRect();
-    // 考虑缩放因素
-    const scaleX = scratchCanvas.width / rect.width;
-    const scaleY = scratchCanvas.height / rect.height;
-    const x = (touch.clientX - rect.left) * scaleX;
-    const y = (touch.clientY - rect.top) * scaleY;
-    
-    // 在离屏canvas上用普通模式绘制（避免重复叠加）
-    tempCtx.globalCompositeOperation = 'source-over';
-    tempCtx.strokeStyle = hexToRgba(currentColor, 0.6);
-    tempCtx.lineWidth = brushSize;
-    tempCtx.lineCap = 'round';
-    tempCtx.lineJoin = 'round';
-    
-    tempCtx.beginPath();
-    tempCtx.moveTo(lastX, lastY);
-    tempCtx.lineTo(x, y);
-    tempCtx.stroke();
-    
-    lastX = x;
-    lastY = y;
-}
-
-function handleTouchEnd() {
-    if (!isDrawing) return;
-    isDrawing = false;
-    
-    // 将离屏canvas用multiply模式合成到主canvas
-    const scratchCanvas = document.getElementById('scratchCanvas');
-    const ctx = scratchCanvas.getContext('2d');
-    ctx.globalCompositeOperation = 'multiply';
-    ctx.drawImage(tempCanvas, 0, 0);
-    
-    // 重置合成模式
-    ctx.globalCompositeOperation = 'source-over';
-}
+		    if (!isDrawingMode) return;
+		    isDrawing = true;
+		    const scratchCanvas = document.getElementById('scratchCanvas');
+		    const rect = scratchCanvas.getBoundingClientRect();
+		    // 考虑缩放因素
+		    const scaleX = scratchCanvas.width / rect.width;
+		    const scaleY = scratchCanvas.height / rect.height;
+		    lastX = (e.clientX - rect.left) * scaleX;
+		    lastY = (e.clientY - rect.top) * scaleY;
+		    
+		    // 初始化离屏canvas
+		    tempCanvas.width = scratchCanvas.width;
+		    tempCanvas.height = scratchCanvas.height;
+		    tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+		}
+		
+		function handleMouseMove(e) {
+		    if (!isDrawingMode || !isDrawing) return;
+		    const scratchCanvas = document.getElementById('scratchCanvas');
+		    const rect = scratchCanvas.getBoundingClientRect();
+		    // 考虑缩放因素
+		    const scaleX = scratchCanvas.width / rect.width;
+		    const scaleY = scratchCanvas.height / rect.height;
+		    const x = (e.clientX - rect.left) * scaleX;
+		    const y = (e.clientY - rect.top) * scaleY;
+		    
+		    // 在离屏canvas上用普通模式绘制（避免重复叠加）
+		    tempCtx.globalCompositeOperation = 'source-over';
+		    tempCtx.strokeStyle = hexToRgba(currentColor, 0.6);
+		    tempCtx.lineWidth = brushSize;
+		    tempCtx.lineCap = 'round';
+		    tempCtx.lineJoin = 'round';
+		    
+		    tempCtx.beginPath();
+		    tempCtx.moveTo(lastX, lastY);
+		    tempCtx.lineTo(x, y);
+		    tempCtx.stroke();
+		    
+		    lastX = x;
+		    lastY = y;
+		}
+		
+		function handleMouseUp() {
+		    if (!isDrawing) return;
+		    isDrawing = false;
+		    
+		    // 将离屏canvas用multiply模式合成到主canvas
+		    const scratchCanvas = document.getElementById('scratchCanvas');
+		    const ctx = scratchCanvas.getContext('2d');
+		    ctx.globalCompositeOperation = 'multiply';
+		    ctx.drawImage(tempCanvas, 0, 0);
+		    
+		    // 重置合成模式
+		    ctx.globalCompositeOperation = 'source-over';
+		}
+		
+		// 触摸绘图事件处理
+		function handleTouchStart(e) {
+		    if (!isDrawingMode) return;
+		    e.preventDefault();
+		    const touch = e.touches[0];
+		    const scratchCanvas = document.getElementById('scratchCanvas');
+		    const rect = scratchCanvas.getBoundingClientRect();
+		    // 考虑缩放因素
+		    const scaleX = scratchCanvas.width / rect.width;
+		    const scaleY = scratchCanvas.height / rect.height;
+		    lastX = (touch.clientX - rect.left) * scaleX;
+		    lastY = (touch.clientY - rect.top) * scaleY;
+		    isDrawing = true;
+		    
+		    // 初始化离屏canvas
+		    tempCanvas.width = scratchCanvas.width;
+		    tempCanvas.height = scratchCanvas.height;
+		    tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+		}
+		
+		function handleTouchMove(e) {
+		    if (!isDrawingMode || !isDrawing) return;
+		    e.preventDefault();
+		    const touch = e.touches[0];
+		    const scratchCanvas = document.getElementById('scratchCanvas');
+		    const rect = scratchCanvas.getBoundingClientRect();
+		    // 考虑缩放因素
+		    const scaleX = scratchCanvas.width / rect.width;
+		    const scaleY = scratchCanvas.height / rect.height;
+		    const x = (touch.clientX - rect.left) * scaleX;
+		    const y = (touch.clientY - rect.top) * scaleY;
+		    
+		    // 在离屏canvas上用普通模式绘制（避免重复叠加）
+		    tempCtx.globalCompositeOperation = 'source-over';
+		    tempCtx.strokeStyle = hexToRgba(currentColor, 0.6);
+		    tempCtx.lineWidth = brushSize;
+		    tempCtx.lineCap = 'round';
+		    tempCtx.lineJoin = 'round';
+		    
+		    tempCtx.beginPath();
+		    tempCtx.moveTo(lastX, lastY);
+		    tempCtx.lineTo(x, y);
+		    tempCtx.stroke();
+		    
+		    lastX = x;
+		    lastY = y;
+		}
+		
+		function handleTouchEnd() {
+		    if (!isDrawing) return;
+		    isDrawing = false;
+		    
+		    // 将离屏canvas用multiply模式合成到主canvas
+		    const scratchCanvas = document.getElementById('scratchCanvas');
+		    const ctx = scratchCanvas.getContext('2d');
+		    ctx.globalCompositeOperation = 'multiply';
+		    ctx.drawImage(tempCanvas, 0, 0);
+		    
+		    // 重置合成模式
+		    ctx.globalCompositeOperation = 'source-over';
+		}
         // 按钮1 - 绘图模式
 		document.getElementById('btn1').addEventListener('click', () => {
 		    isDrawingMode = true;
@@ -1313,6 +1313,7 @@ function handleTouchEnd() {
                 ctx.clearRect(0, 0, scratchCanvas.width, scratchCanvas.height);
             }
         });
+
 
 		// 工具栏折叠/展开功能
 		document.getElementById('minimizeTools').addEventListener('click', () => {
