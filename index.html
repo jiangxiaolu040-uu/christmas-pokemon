@@ -72,6 +72,7 @@
             background: linear-gradient(180deg, var(--pokemon-red) 50%, white 50%);
             opacity: 0.2;
             animation: float 6s ease-in-out infinite;
+            pointer-events: none; /* 防止阻挡点击事件 */
         }
 
         .pokeball-deco::after {
@@ -1215,51 +1216,6 @@
 		    scratchCanvas.addEventListener('touchmove', handleTouchMove);
 		    scratchCanvas.addEventListener('touchend', handleTouchEnd);
 
-            // 设置绘图模式
-            const ctx = scratchCanvas.getContext('2d');
-            ctx.globalCompositeOperation = 'source-over';
-			ctx.clearRect(0, 0, scratchCanvas.width, scratchCanvas.height); // 清除灰色层
-
-            let isDrawing = false;
-
-            function draw(e) {
-                if (!isDrawing) return;
-
-                const rect = scratchCanvas.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-
-                ctx.strokeStyle = currentColor;
-                ctx.lineWidth = brushSize;
-                ctx.lineCap = 'round';
-                ctx.lineTo(x, y);
-                ctx.stroke();
-                ctx.beginPath();
-                ctx.moveTo(x, y);
-            }
-
-            scratchCanvas.addEventListener('mousedown', (e) => {
-                if (isDrawingMode) {
-                    isDrawing = true;
-                    const rect = scratchCanvas.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
-                    ctx.beginPath();
-                    ctx.moveTo(x, y);
-                }
-            });
-
-            scratchCanvas.addEventListener('mousemove', draw);
-
-            scratchCanvas.addEventListener('mouseup', () => {
-                isDrawing = false;
-                ctx.beginPath();
-            });
-
-            scratchCanvas.addEventListener('mouseleave', () => {
-                isDrawing = false;
-                ctx.beginPath();
-            });
         });
 
         // 颜色选择
@@ -1283,13 +1239,6 @@
             ctx.clearRect(0, 0, scratchCanvas.width, scratchCanvas.height);
         });
 
-        // 退出绘图模式
-        document.getElementById('exitDrawing').addEventListener('click', () => {
-            isDrawingMode = false;
-            document.getElementById('drawingTools').classList.remove('active');
-            document.querySelector('.progress-bar').style.display = 'block';
-            
-        });
 
 		// 工具栏折叠/展开功能
 		document.getElementById('minimizeTools').addEventListener('click', () => {
@@ -1347,11 +1296,15 @@
 		    isPinching = false;
 		});
 		
-		// 重置缩放
+		// 退出绘图模式
 		document.getElementById('exitDrawing').addEventListener('click', () => {
+		    isDrawingMode = false;
+		    document.getElementById('drawingTools').classList.remove('active');
+		    document.querySelector('.progress-bar').style.display = 'block';
+		    
+		    // 重置缩放
 		    scale = 1;
 		    document.querySelector('.canvas-container').style.transform = 'scale(1)';
-		    // ... 其他退出代码
 		});
 
         // 按钮3 - 反馈表单
@@ -1399,10 +1352,6 @@
 		    }
 		});
 
-            document.getElementById('feedbackText').value = '';
-            document.getElementById('charCount').textContent = '0';
-            closeModal('feedbackModal');
-        });
 
         // 关闭弹窗
         function closeModal(modalId) {
