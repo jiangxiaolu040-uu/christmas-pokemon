@@ -952,8 +952,11 @@
             "宝可梦初代有151只，皮卡丘是NO.25",
             "很好区分哪些是我写的吧~",
             "服务器正繁忙，请稍后再试",
-			"有bug很正常啦，第一次做，多多包涵🧐",
-			"500字的夸夸在哪里👀",
+			"有没有可能这个页面的灰色部分可以交互🤔",
+			"而今天正好是25号~",
+			"您的刷新次数已达上限，请于0:00后再试",
+			"⬮ ⩊ ⬮	Ϟ(๑⚈ ․̫ ⚈๑)",
+			"◀︎ ̥𐄀৩̫𐄀 ̥▶︎	o̴̶̷ θ o̴̶̷	⊃(⊙)⊂",
         ];
 
         // 随机获取一条消息
@@ -1113,7 +1116,7 @@
 		let isDrawing = false;
 		let lastX = 0;
 		let lastY = 0;
-		// 将hex颜色转换为rgba（20%透明度）
+		// 将hex颜色转换为rgba（80%透明度）
 		function hexToRgba(hex, alpha = 0.2) {
 		    const r = parseInt(hex.slice(1, 3), 16);
 		    const g = parseInt(hex.slice(3, 5), 16);
@@ -1122,14 +1125,16 @@
 		}
 		
 		
-		// 鼠标绘图事件处理
 		function handleMouseDown(e) {
 		    if (!isDrawingMode) return;
 		    isDrawing = true;
 		    const scratchCanvas = document.getElementById('scratchCanvas');
 		    const rect = scratchCanvas.getBoundingClientRect();
-		    lastX = e.clientX - rect.left;
-		    lastY = e.clientY - rect.top;
+		    // 考虑缩放因素
+		    const scaleX = scratchCanvas.width / rect.width;
+		    const scaleY = scratchCanvas.height / rect.height;
+		    lastX = (e.clientX - rect.left) * scaleX;
+		    lastY = (e.clientY - rect.top) * scaleY;
 		}
 		
 		function handleMouseMove(e) {
@@ -1137,10 +1142,15 @@
 		    const scratchCanvas = document.getElementById('scratchCanvas');
 		    const ctx = scratchCanvas.getContext('2d');
 		    const rect = scratchCanvas.getBoundingClientRect();
-		    const x = e.clientX - rect.left;
-		    const y = e.clientY - rect.top;
+		    // 考虑缩放因素
+		    const scaleX = scratchCanvas.width / rect.width;
+		    const scaleY = scratchCanvas.height / rect.height;
+		    const x = (e.clientX - rect.left) * scaleX;
+		    const y = (e.clientY - rect.top) * scaleY;
 		    
-		    ctx.strokeStyle = hexToRgba(currentColor, 0.8);
+		    // 设置混合模式以保留底层线条
+		    ctx.globalCompositeOperation = 'multiply';
+		    ctx.strokeStyle = hexToRgba(currentColor, 0.6);  // 提高透明度到60%
 		    ctx.lineWidth = brushSize;
 		    ctx.lineCap = 'round';
 		    ctx.lineJoin = 'round';
@@ -1165,8 +1175,11 @@
 		    const touch = e.touches[0];
 		    const scratchCanvas = document.getElementById('scratchCanvas');
 		    const rect = scratchCanvas.getBoundingClientRect();
-		    lastX = touch.clientX - rect.left;
-		    lastY = touch.clientY - rect.top;
+		    // 考虑缩放因素
+		    const scaleX = scratchCanvas.width / rect.width;
+		    const scaleY = scratchCanvas.height / rect.height;
+		    lastX = (touch.clientX - rect.left) * scaleX;
+		    lastY = (touch.clientY - rect.top) * scaleY;
 		    isDrawing = true;
 		}
 		
@@ -1177,10 +1190,15 @@
 		    const scratchCanvas = document.getElementById('scratchCanvas');
 		    const ctx = scratchCanvas.getContext('2d');
 		    const rect = scratchCanvas.getBoundingClientRect();
-		    const x = touch.clientX - rect.left;
-		    const y = touch.clientY - rect.top;
+		    // 考虑缩放因素
+		    const scaleX = scratchCanvas.width / rect.width;
+		    const scaleY = scratchCanvas.height / rect.height;
+		    const x = (touch.clientX - rect.left) * scaleX;
+		    const y = (touch.clientY - rect.top) * scaleY;
 		    
-		    ctx.strokeStyle = hexToRgba(currentColor, 0.8);
+		    // 设置混合模式以保留底层线条
+		    ctx.globalCompositeOperation = 'multiply';
+		    ctx.strokeStyle = hexToRgba(currentColor, 0.6);  // 提高透明度到60%
 		    ctx.lineWidth = brushSize;
 		    ctx.lineCap = 'round';
 		    ctx.lineJoin = 'round';
@@ -1197,7 +1215,6 @@
 		function handleTouchEnd() {
 		    isDrawing = false;
 		}
-
         // 按钮1 - 绘图模式
 		document.getElementById('btn1').addEventListener('click', () => {
 		    isDrawingMode = true;
@@ -1211,7 +1228,7 @@
 		    ctx.globalCompositeOperation = 'source-over';
 		    
 		    // ⭐ 关键：清除灰色刮刮乐层
-		    //ctx.clearRect(0, 0, scratchCanvas.width, scratchCanvas.height);
+		    //ctx.clearRect(0, 0, scratchCanvas.width, scratch
 		    
 		    // ⭐ 重新绑定绘图事件（确保事件生效）
 		    scratchCanvas.removeEventListener('mousedown', handleMouseDown);
@@ -1251,7 +1268,13 @@
         document.getElementById('clearDrawing').addEventListener('click', () => {
             const scratchCanvas = document.getElementById('scratchCanvas');
             const ctx = scratchCanvas.getContext('2d');
+            // 保存当前的globalCompositeOperation
+            const prevComposite = ctx.globalCompositeOperation;
+            // 清除绘图层内容
+            ctx.globalCompositeOperation = 'source-over';
             ctx.clearRect(0, 0, scratchCanvas.width, scratchCanvas.height);
+            // 恢复之前的设置
+            ctx.globalCompositeOperation = prevComposite;
         });
 
 
@@ -1355,7 +1378,7 @@
 		        ).then(
 		            function(response) {
 		                console.log('发送成功！', response.status, response.text);
-		                alert('感谢你的反馈！我们已收到。');
+		                alert('OK.I will check email soon.');
 		                closeModal('feedbackModal');
 		                document.getElementById('feedbackText').value = '';
 		                document.getElementById('charCount').textContent = '0';
