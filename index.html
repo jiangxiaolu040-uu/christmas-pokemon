@@ -552,28 +552,75 @@
             box-shadow: 0 4px 0 var(--dark), 0 6px 15px rgba(0, 0, 0, 0.3);
         }
 
-        /* 绘图模式 */
-        .drawing-tools {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: linear-gradient(180deg, #ffffff 0%, #fff4e6 100%);
-            padding: 20px;
-            border-radius: 25px;
-            display: none;
-            flex-direction: column;
-            gap: 12px;
-            box-shadow: 
-                0 0 0 5px var(--pokemon-yellow),
-                0 0 0 10px var(--christmas-red),
-                0 12px 40px rgba(0, 0, 0, 0.3);
-            border: 4px solid var(--dark);
-        }
-
-        .drawing-tools.active {
-            display: flex;
-            animation: slideInLeft 0.5s ease;
-        }
+        /* 绘图模式 - 底部居中 */
+		.drawing-tools {
+		    position: fixed;
+		    bottom: 80px;  /* 在按钮上方 */
+		    left: 50%;
+		    transform: translateX(-50%);
+		    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%);
+		    padding: 20px;
+		    border-radius: 30px;
+		    box-shadow: 
+		        0 0 0 4px var(--pokemon-yellow),
+		        0 8px 32px rgba(0, 0, 0, 0.3);
+		    display: none;
+		    flex-direction: column;
+		    align-items: center;
+		    gap: 12px;
+		    z-index: 1001;
+		    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+		}
+		
+		.drawing-tools.active {
+		    display: flex;
+		    animation: slideUp 0.5s ease-out;
+		}
+		
+		@keyframes slideUp {
+		    from {
+		        transform: translateX(-50%) translateY(100px);
+		        opacity: 0;
+		    }
+		    to {
+		        transform: translateX(-50%) translateY(0);
+		        opacity: 1;
+		    }
+		}
+		
+		/* 折叠状态 - 精灵球图标 */
+		.drawing-tools.minimized {
+		    position: fixed;
+		    left: 20px;
+		    bottom: 50%;
+		    transform: translateY(50%);
+		    width: 60px;
+		    height: 60px;
+		    padding: 0;
+		    border-radius: 50%;
+		    background: linear-gradient(180deg, var(--pokemon-red) 50%, white 50%);
+		    border: 4px solid var(--dark);
+		    cursor: pointer;
+		    display: flex;
+		    align-items: center;
+		    justify-content: center;
+		    animation: float 3s ease-in-out infinite;
+		}
+		
+		.drawing-tools.minimized::before {
+		    content: '';
+		    width: 16px;
+		    height: 16px;
+		    background: white;
+		    border: 4px solid var(--dark);
+		    border-radius: 50%;
+		}
+		
+		.drawing-tools.minimized .color-palette,
+		.drawing-tools.minimized .brush-size,
+		.drawing-tools.minimized .tool-btn {
+		    display: none;
+		}
 
         @keyframes slideInLeft {
             from {
@@ -731,6 +778,14 @@
             transform: none;
         }
     </style>
+	
+	<!-- EmailJS 脚本 -->
+	<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+	<script>
+	    (function() {
+	        emailjs.init("你的_PUBLIC_KEY"); // ← 粘贴你的Public Key
+	    })();
+	</script>
 </head>
 <body>
     <!-- 宝可梦球装饰 -->
@@ -1046,13 +1101,119 @@
             document.getElementById('textModal').classList.add('active');
         });
 
+		// 绘图相关的变量
+		let isDrawing = false;
+		let lastX = 0;
+		let lastY = 0;
+		
+		// 鼠标绘图事件处理
+		function handleMouseDown(e) {
+		    if (!isDrawingMode) return;
+		    isDrawing = true;
+		    const scratchCanvas = document.getElementById('scratchCanvas');
+		    const rect = scratchCanvas.getBoundingClientRect();
+		    lastX = e.clientX - rect.left;
+		    lastY = e.clientY - rect.top;
+		}
+		
+		function handleMouseMove(e) {
+		    if (!isDrawingMode || !isDrawing) return;
+		    const scratchCanvas = document.getElementById('scratchCanvas');
+		    const ctx = scratchCanvas.getContext('2d');
+		    const rect = scratchCanvas.getBoundingClientRect();
+		    const x = e.clientX - rect.left;
+		    const y = e.clientY - rect.top;
+		    
+		    ctx.strokeStyle = currentColor;
+		    ctx.lineWidth = brushSize;
+		    ctx.lineCap = 'round';
+		    ctx.lineJoin = 'round';
+		    
+		    ctx.beginPath();
+		    ctx.moveTo(lastX, lastY);
+		    ctx.lineTo(x, y);
+		    ctx.stroke();
+		    
+		    lastX = x;
+		    lastY = y;
+		}
+		
+		function handleMouseUp() {
+		    isDrawing = false;
+		}
+		
+		// 触摸绘图事件处理
+		function handleTouchStart(e) {
+		    if (!isDrawingMode) return;
+		    e.preventDefault();
+		    const touch = e.touches[0];
+		    const scratchCanvas = document.getElementById('scratchCanvas');
+		    const rect = scratchCanvas.getBoundingClientRect();
+		    lastX = touch.clientX - rect.left;
+		    lastY = touch.clientY - rect.top;
+		    isDrawing = true;
+		}
+		
+		function handleTouchMove(e) {
+		    if (!isDrawingMode || !isDrawing) return;
+		    e.preventDefault();
+		    const touch = e.touches[0];
+		    const scratchCanvas = document.getElementById('scratchCanvas');
+		    const ctx = scratchCanvas.getContext('2d');
+		    const rect = scratchCanvas.getBoundingClientRect();
+		    const x = touch.clientX - rect.left;
+		    const y = touch.clientY - rect.top;
+		    
+		    ctx.strokeStyle = currentColor;
+		    ctx.lineWidth = brushSize;
+		    ctx.lineCap = 'round';
+		    ctx.lineJoin = 'round';
+		    
+		    ctx.beginPath();
+		    ctx.moveTo(lastX, lastY);
+		    ctx.lineTo(x, y);
+		    ctx.stroke();
+		    
+		    lastX = x;
+		    lastY = y;
+		}
+		
+		function handleTouchEnd() {
+		    isDrawing = false;
+		}
+
         // 按钮1 - 绘图模式
-        document.getElementById('btn1').addEventListener('click', () => {
-            isDrawingMode = true;
-            document.getElementById('drawingTools').classList.add('active');
-            document.querySelector('.progress-bar').style.display = 'none';
-            const scratchCanvas = document.getElementById('scratchCanvas');
-            scratchCanvas.style.cursor = 'crosshair';
+		document.getElementById('btn1').addEventListener('click', () => {
+		    isDrawingMode = true;
+		    document.getElementById('drawingTools').classList.add('active');
+		    document.querySelector('.progress-bar').style.display = 'none';
+		    const scratchCanvas = document.getElementById('scratchCanvas');
+		    scratchCanvas.style.cursor = 'crosshair';
+		
+		    // 设置绘图模式
+		    const ctx = scratchCanvas.getContext('2d');
+		    ctx.globalCompositeOperation = 'source-over';
+		    
+		    // ⭐ 关键：清除灰色刮刮乐层
+		    ctx.clearRect(0, 0, scratchCanvas.width, scratchCanvas.height);
+		    
+		    // ⭐ 重新绑定绘图事件（确保事件生效）
+		    scratchCanvas.removeEventListener('mousedown', handleMouseDown);
+		    scratchCanvas.removeEventListener('mousemove', handleMouseMove);
+		    scratchCanvas.removeEventListener('mouseup', handleMouseUp);
+		    
+		    scratchCanvas.addEventListener('mousedown', handleMouseDown);
+		    scratchCanvas.addEventListener('mousemove', handleMouseMove);
+		    scratchCanvas.addEventListener('mouseup', handleMouseUp);
+		    
+		    // ⭐ 添加触摸事件支持
+		    scratchCanvas.removeEventListener('touchstart', handleTouchStart);
+		    scratchCanvas.removeEventListener('touchmove', handleTouchMove);
+		    scratchCanvas.removeEventListener('touchend', handleTouchEnd);
+		    
+		    scratchCanvas.addEventListener('touchstart', handleTouchStart);
+		    scratchCanvas.addEventListener('touchmove', handleTouchMove);
+		    scratchCanvas.addEventListener('touchend', handleTouchEnd);
 
             // 设置绘图模式
             const ctx = scratchCanvas.getContext('2d');
@@ -1130,38 +1291,113 @@
             
         });
 
+		// 工具栏折叠/展开功能
+		document.getElementById('minimizeTools').addEventListener('click', () => {
+		    const tools = document.getElementById('drawingTools');
+		    tools.classList.toggle('minimized');
+		});
+		
+		// 点击折叠的精灵球展开工具栏
+		document.getElementById('drawingTools').addEventListener('click', (e) => {
+		    const tools = document.getElementById('drawingTools');
+		    if (tools.classList.contains('minimized') && e.target === tools) {
+		        tools.classList.remove('minimized');
+		    }
+		});
+
+		// 画布缩放功能
+		let scale = 1;
+		let isPinching = false;
+		let lastDistance = 0;
+		
+		document.getElementById('scratchCanvas').addEventListener('touchstart', (e) => {
+		    if (e.touches.length === 2 && isDrawingMode) {
+		        isPinching = true;
+		        const touch1 = e.touches[0];
+		        const touch2 = e.touches[1];
+		        lastDistance = Math.hypot(
+		            touch2.clientX - touch1.clientX,
+		            touch2.clientY - touch1.clientY
+		        );
+		    }
+		});
+		
+		document.getElementById('scratchCanvas').addEventListener('touchmove', (e) => {
+		    if (isPinching && e.touches.length === 2 && isDrawingMode) {
+		        e.preventDefault();
+		        const touch1 = e.touches[0];
+		        const touch2 = e.touches[1];
+		        const distance = Math.hypot(
+		            touch2.clientX - touch1.clientX,
+		            touch2.clientY - touch1.clientY
+		        );
+		        
+		        const delta = distance - lastDistance;
+		        scale += delta * 0.01;
+		        scale = Math.min(Math.max(0.5, scale), 3); // 限制在0.5-3倍
+		        
+		        const canvasContainer = document.querySelector('.canvas-container');
+		        canvasContainer.style.transform = `scale(${scale})`;
+		        
+		        lastDistance = distance;
+		    }
+		});
+		
+		document.getElementById('scratchCanvas').addEventListener('touchend', () => {
+		    isPinching = false;
+		});
+		
+		// 重置缩放
+		document.getElementById('exitDrawing').addEventListener('click', () => {
+		    scale = 1;
+		    document.querySelector('.canvas-container').style.transform = 'scale(1)';
+		    // ... 其他退出代码
+		});
+
         // 按钮3 - 反馈表单
         document.getElementById('btn3').addEventListener('click', () => {
             document.getElementById('feedbackModal').classList.add('active');
         });
 
         // 字数统计
-        document.getElementById('feedbackText').addEventListener('input', function() {
-            document.getElementById('charCount').textContent = this.value.length;
-        });
-
-        // 表单提交
-        document.getElementById('feedbackForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const feedback = document.getElementById('feedbackText').value;
-            
-            if (feedback.trim() === '') {
-                alert('请输入反馈内容');
-                return;
-            }
-
-            // 这里需要配置邮件发送服务
-            // 由于HTML无法直接发送邮件，你需要：
-            // 1. 使用EmailJS服务（免费）
-            // 2. 或者创建后端API来处理邮件发送
-            
-            alert('感谢你的反馈！\n\n实际使用时，请配置邮件发送服务：\n1. 使用EmailJS服务\n2. 或创建后端API处理邮件');
-            
-            // EmailJS示例代码（需要注册EmailJS并配置）:
-            // emailjs.send("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", {
-            //     message: feedback,
-            //     to_email: "your-email@example.com"
-            // });
+        document.getElementById('submitFeedback').addEventListener('click', () => {
+		    const feedback = document.getElementById('feedbackText').value;
+		    
+		    if (feedback.trim()) {
+		        // 显示发送中提示
+		        const submitBtn = document.getElementById('submitFeedback');
+		        submitBtn.textContent = '发送中...';
+		        submitBtn.disabled = true;
+		        
+		        // 使用 EmailJS 发送邮件
+		        emailjs.send(
+		            "service_4q1neih",      // ← 替换为你的 Service ID
+		            "template_5teisxe",     // ← 替换为你的 Template ID
+		            {
+		                from_name: "YYC",  // 可以改成用户输入的名字
+		                message: feedback,
+		                reply_to: new Date().toLocaleString() // 发送时间
+		            }
+		        ).then(
+		            function(response) {
+		                console.log('发送成功！', response.status, response.text);
+		                alert('感谢你的反馈！我们已收到。');
+		                closeModal('feedbackModal');
+		                document.getElementById('feedbackText').value = '';
+		                submitBtn.textContent = 'SEND';
+		                submitBtn.disabled = false;
+		            },
+		            function(error) {
+		                console.log('发送失败...', error);
+		                alert('抱歉，发送失败！请稍后再试。');
+		                submitBtn.textContent = 'SEND';
+		                submitBtn.disabled = false;
+		            }
+		        );
+		    } else {
+		        alert('请输入反馈内容！');
+		    }
+		});
 
             document.getElementById('feedbackText').value = '';
             document.getElementById('charCount').textContent = '0';
