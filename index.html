@@ -833,6 +833,11 @@
 
         <!-- 绘图工具 -->
         <div class="drawing-tools" id="drawingTools">
+            <!-- 工具栏标题和折叠按钮 -->
+            <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; margin-bottom: 10px;">
+                <span style="font-weight: bold; color: var(--pokemon-red); font-family: 'Press Start 2P', cursive; font-size: 12px;">🎨 PAINT</span>
+                <button id="minimizeTools" style="background: var(--pokemon-yellow); border: 2px solid var(--dark); border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 16px;">➖</button>
+            </div>
             <h4>COLORS</h4>
             <div class="color-palette">
                 <div class="color-btn active" style="background: #ff6b6b;" data-color="#ff6b6b"></div>
@@ -889,7 +894,7 @@
                 <div class="char-count">
                     <span id="charCount">0</span>/100
                 </div>
-                <button type="submit" class="submit-btn">SEND</button>
+                <button type="submit" class="submit-btn" id="submitFeedback">SEND</button>
             </form>
             <button class="close-btn" onclick="closeModal('feedbackModal')">CANCEL</button>
         </div>
@@ -1106,6 +1111,14 @@
 		let isDrawing = false;
 		let lastX = 0;
 		let lastY = 0;
+		// 将hex颜色转换为rgba（80%透明度）
+		function hexToRgba(hex, alpha = 0.8) {
+		    const r = parseInt(hex.slice(1, 3), 16);
+		    const g = parseInt(hex.slice(3, 5), 16);
+		    const b = parseInt(hex.slice(5, 7), 16);
+		    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+		}
+		
 		
 		// 鼠标绘图事件处理
 		function handleMouseDown(e) {
@@ -1125,7 +1138,7 @@
 		    const x = e.clientX - rect.left;
 		    const y = e.clientY - rect.top;
 		    
-		    ctx.strokeStyle = currentColor;
+		    ctx.strokeStyle = hexToRgba(currentColor, 0.8);
 		    ctx.lineWidth = brushSize;
 		    ctx.lineCap = 'round';
 		    ctx.lineJoin = 'round';
@@ -1165,7 +1178,7 @@
 		    const x = touch.clientX - rect.left;
 		    const y = touch.clientY - rect.top;
 		    
-		    ctx.strokeStyle = currentColor;
+		    ctx.strokeStyle = hexToRgba(currentColor, 0.8);
 		    ctx.lineWidth = brushSize;
 		    ctx.lineCap = 'round';
 		    ctx.lineJoin = 'round';
@@ -1313,7 +1326,13 @@
         });
 
         // 字数统计
-        document.getElementById('submitFeedback').addEventListener('click', () => {
+        document.getElementById('feedbackText').addEventListener('input', function() {
+            document.getElementById('charCount').textContent = this.value.length;
+        });
+
+        // 提交反馈
+        document.getElementById('submitFeedback').addEventListener('click', (e) => {
+		    e.preventDefault(); // 防止表单提交
 		    const feedback = document.getElementById('feedbackText').value;
 		    
 		    if (feedback.trim()) {
@@ -1324,12 +1343,12 @@
 		        
 		        // 使用 EmailJS 发送邮件
 		        emailjs.send(
-		            "service_4q1neih",      // ← 替换为你的 Service ID
-		            "template_5teisxe",     // ← 替换为你的 Template ID
+		            "service_4q1neih",
+		            "template_5teisxe",
 		            {
-		                from_name: "YYC",  // 可以改成用户输入的名字
+		                from_name: "YYC",
 		                message: feedback,
-		                reply_to: new Date().toLocaleString() // 发送时间
+		                reply_to: new Date().toLocaleString()
 		            }
 		        ).then(
 		            function(response) {
@@ -1337,6 +1356,7 @@
 		                alert('感谢你的反馈！我们已收到。');
 		                closeModal('feedbackModal');
 		                document.getElementById('feedbackText').value = '';
+		                document.getElementById('charCount').textContent = '0';
 		                submitBtn.textContent = 'SEND';
 		                submitBtn.disabled = false;
 		            },
