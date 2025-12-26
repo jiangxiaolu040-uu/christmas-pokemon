@@ -862,6 +862,7 @@
                 <span style="font-size: 24px;">💧</span>
             </div>
             <button class="tool-btn" id="clearDrawing">CLEAR</button>
+            <button class="tool-btn" id="undoDrawing">UNDO</button>
             <button class="tool-btn" id="exitDrawing">EXIT</button>
         </div>
 
@@ -963,6 +964,8 @@
 			"您的刷新次数已达上限，请于0:00后再试",
 			"⬮ ⩊ ⬮	Ϟ(๑⚈ ․̫ ⚈๑)",
 			"⊃(⊙)⊂	o̴̶̷ θ o̴̶̷",
+			"26号了，你依旧没有解锁🎄，我很失望",
+			"而今年正好是25年，",
         ];
 
         // 随机获取一条消息
@@ -983,6 +986,14 @@
                 musicToggle.textContent = '⏸';
             }
             isMusicPlaying = !isMusicPlaying;
+        });
+
+        // 确保音乐循环播放
+        music.addEventListener('ended', () => {
+            if (isMusicPlaying) {
+                music.currentTime = 0;
+                music.play();
+            }
         });
 
         // 页面切换
@@ -1137,6 +1148,8 @@
 		let currentScratchState = null; // 保存当前刮刮乐层状态（包括刮开和绘制）
 		let beforeDrawingState = null; // 保存进入绘图模式前的状态（只有刮刮乐，用于clear）
 		let drawingStartState = null; // 保存开始绘制时的状态（用于实时预览）
+		let drawingHistory = []; // 保存绘图历史记录（用于撤回）
+		const MAX_HISTORY = 20; // 最多保存20步历史
 		
 		// 离屏canvas - 用于避免同一笔画内颜色重复叠加
 		let tempCanvas = document.createElement('canvas');
@@ -1225,6 +1238,14 @@
 		    
 		    // 保存当前状态（包括刮开的部分和绘制的内容）
 		    currentScratchState = ctx.getImageData(0, 0, scratchCanvas.width, scratchCanvas.height);
+		    
+		    // 保存到历史记录（用于撤回）
+		    drawingHistory.push(ctx.getImageData(0, 0, scratchCanvas.width, scratchCanvas.height));
+		    // 限制历史记录数量
+		    if (drawingHistory.length > MAX_HISTORY) {
+		        drawingHistory.shift(); // 删除最早的记录
+		    }
+		    
 		    drawingStartState = null;
 		}
 		
@@ -1308,6 +1329,14 @@
 		    
 		    // 保存当前状态（包括刮开的部分和绘制的内容）
 		    currentScratchState = ctx.getImageData(0, 0, scratchCanvas.width, scratchCanvas.height);
+		    
+		    // 保存到历史记录（用于撤回）
+		    drawingHistory.push(ctx.getImageData(0, 0, scratchCanvas.width, scratchCanvas.height));
+		    // 限制历史记录数量
+		    if (drawingHistory.length > MAX_HISTORY) {
+		        drawingHistory.shift(); // 删除最早的记录
+		    }
+		    
 		    drawingStartState = null;
 		}
         // 按钮1 - 绘图模式
@@ -1324,6 +1353,9 @@
 		    
 		    // 保存进入绘图前的状态（用于clear功能）
 		    beforeDrawingState = ctx.getImageData(0, 0, scratchCanvas.width, scratchCanvas.height);
+		    
+		    // 初始化历史记录（保存进入绘图时的状态作为第一个历史）
+		    drawingHistory = [ctx.getImageData(0, 0, scratchCanvas.width, scratchCanvas.height)];
 		    
 		    // ⭐ 关键：清除灰色刮刮乐层
 		    //ctx.clearRect(0, 0, scratchCanvas.width, scratch
@@ -1381,6 +1413,27 @@
             } else {
                 // 如果都没有，则完全清除
                 ctx.clearRect(0, 0, scratchCanvas.width, scratchCanvas.height);
+            }
+        });
+
+        // 撤回绘图
+        document.getElementById('undoDrawing').addEventListener('click', () => {
+            const scratchCanvas = document.getElementById('scratchCanvas');
+            const ctx = scratchCanvas.getContext('2d');
+            
+            // 如果历史记录多于1个（第一个是初始状态）
+            if (drawingHistory.length > 1) {
+                // 删除当前状态（最后一个）
+                drawingHistory.pop();
+                // 恢复到前一个状态
+                const previousState = drawingHistory[drawingHistory.length - 1];
+                ctx.putImageData(previousState, 0, 0);
+                // 更新当前状态
+                currentScratchState = previousState;
+            } else if (drawingHistory.length === 1) {
+                // 只剩初始状态，恢复它
+                ctx.putImageData(drawingHistory[0], 0, 0);
+                currentScratchState = drawingHistory[0];
             }
         });
 
