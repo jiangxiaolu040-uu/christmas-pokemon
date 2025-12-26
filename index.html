@@ -1482,15 +1482,16 @@
 		    const tools = document.getElementById('drawingTools');
 		    let isDragging = false;
 		    let startX, startY;
+		    let initialMouseX, initialMouseY;
 		    let currentX, currentY;
 		    let hasMoved = false;
+		    const MOVE_THRESHOLD = 10; // 移动超过10px才算拖拽
 		    
 		    function startDrag(e) {
 		        if (!tools.classList.contains('minimized')) return;
 		        
 		        isDragging = true;
 		        hasMoved = false;
-		        tools.classList.add('dragging');
 		        
 		        const touch = e.type.includes('touch') ? e.touches[0] : e;
 		        const rect = tools.getBoundingClientRect();
@@ -1498,29 +1499,49 @@
 		        startX = touch.clientX - rect.left;
 		        startY = touch.clientY - rect.top;
 		        
-		        e.preventDefault();
+		        // 记录初始鼠标位置（用于计算移动距离）
+		        initialMouseX = touch.clientX;
+		        initialMouseY = touch.clientY;
+		        
+		        // 只阻止触摸事件的默认行为，不阻止鼠标点击
+		        if (e.type.includes('touch')) {
+		            e.preventDefault();
+		        }
 		    }
 		    
 		    function drag(e) {
 		        if (!isDragging) return;
 		        
-		        hasMoved = true;
 		        const touch = e.type.includes('touch') ? e.touches[0] : e;
 		        
-		        currentX = touch.clientX - startX;
-		        currentY = touch.clientY - startY;
+		        // 计算移动距离
+		        const moveDistance = Math.sqrt(
+		            Math.pow(touch.clientX - initialMouseX, 2) + 
+		            Math.pow(touch.clientY - initialMouseY, 2)
+		        );
 		        
-		        // 限制在屏幕范围内
-		        const maxX = window.innerWidth - tools.offsetWidth;
-		        const maxY = window.innerHeight - tools.offsetHeight;
-		        
-		        currentX = Math.max(0, Math.min(currentX, maxX));
-		        currentY = Math.max(0, Math.min(currentY, maxY));
-		        
-		        tools.style.left = currentX + 'px';
-		        tools.style.top = currentY + 'px';
-		        
-		        e.preventDefault();
+		        // 只有移动超过阈值才算真正的拖拽
+		        if (moveDistance > MOVE_THRESHOLD) {
+		            if (!hasMoved) {
+		                hasMoved = true;
+		                tools.classList.add('dragging');
+		            }
+		            
+		            currentX = touch.clientX - startX;
+		            currentY = touch.clientY - startY;
+		            
+		            // 限制在屏幕范围内
+		            const maxX = window.innerWidth - tools.offsetWidth;
+		            const maxY = window.innerHeight - tools.offsetHeight;
+		            
+		            currentX = Math.max(0, Math.min(currentX, maxX));
+		            currentY = Math.max(0, Math.min(currentY, maxY));
+		            
+		            tools.style.left = currentX + 'px';
+		            tools.style.top = currentY + 'px';
+		            
+		            e.preventDefault();
+		        }
 		    }
 		    
 		    function endDrag(e) {
