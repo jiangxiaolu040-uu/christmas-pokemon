@@ -343,6 +343,7 @@
             bottom: 60px;
             display: flex;
             gap: 30px;
+            z-index: 10000;
         }
 
         .action-btn {
@@ -576,7 +577,7 @@
 		    flex-direction: column;
 		    align-items: center;
 		    gap: 12px;
-		    z-index: 1001;
+		    z-index: 10001;
 		    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 		}
 		
@@ -608,7 +609,7 @@
 		    border-radius: 50%;
 		    background: linear-gradient(180deg, var(--pokemon-red) 50%, white 50%);
 		    border: 4px solid var(--dark);
-		    cursor: move;
+		    cursor: pointer;
 		    display: flex;
 		    align-items: center;
 		    justify-content: center;
@@ -1004,7 +1005,7 @@
 			"而今天正好是25号~",
 			"您的刷新次数已达上限，请于0:00后再试",
 			"⬮ ⩊ ⬮	Ϟ(๑⚈ ․̫ ⚈๑)",
-			"⊃(⊙)⊂	o̴̶̷ θ o̴̶̷",
+			"⊃(⊙)⊂	o̴̶̷ θ o̴̶̷,	",
 			"26号了，你依旧没有解锁🎄，我很失望",
 			"而今年正好是25年，",
 			"新的500字夸夸在哪里！！",
@@ -1294,6 +1295,8 @@
 		// 触摸绘图事件处理
 		function handleTouchStart(e) {
 		    if (!isDrawingMode) return;
+		    // 如果是双指缩放，不绘制
+		    if (e.touches.length >= 2) return;
 		    e.preventDefault();
 		    const touch = e.touches[0];
 		    const scratchCanvas = document.getElementById('scratchCanvas');
@@ -1317,6 +1320,11 @@
 		
 		function handleTouchMove(e) {
 		    if (!isDrawingMode || !isDrawing) return;
+		    // 如果是双指缩放，停止绘制
+		    if (e.touches.length >= 2) {
+		        isDrawing = false;
+		        return;
+		    }
 		    e.preventDefault();
 		    const touch = e.touches[0];
 		    const scratchCanvas = document.getElementById('scratchCanvas');
@@ -1485,7 +1493,8 @@
 		let savedPokeballPosition = null;
 		
 		// 折叠按钮
-		document.getElementById('minimizeTools').addEventListener('click', () => {
+		document.getElementById('minimizeTools').addEventListener('click', (e) => {
+		    e.stopPropagation();  // 阻止事件冒泡
 		    const tools = document.getElementById('drawingTools');
 		    tools.classList.add('minimized');
 		    
@@ -1566,21 +1575,12 @@
 		        tools.classList.remove('dragging');
 		        
 		        if (hasMoved) {
-		            // 拖拽过，吸附并保存位置
 		            snapToEdge();
+		            // 阻止点击事件
 		            e.preventDefault();
 		            e.stopPropagation();
-		        } else {
-		            // 没移动，是点击，展开工具栏
-		            if (tools.classList.contains('minimized')) {
-		                tools.classList.remove('minimized');
-		                tools.style.left = '';
-		                tools.style.bottom = '';
-		                tools.style.transform = '';
-		                e.preventDefault();
-		                e.stopPropagation();
-		            }
 		        }
+		        // 如果没移动，让点击事件正常触发
 		    }
 		    
 		    function snapToEdge() {
@@ -1610,10 +1610,22 @@
 		    document.addEventListener('mouseup', endDrag);
 		    
 		    // 触摸事件
-		    tools.addEventListener('touchstart', startDrag, { passive: false });
+		    tools.addEventListener('touchstart', startDrag, { passive: true });
 		    document.addEventListener('touchmove', drag, { passive: false });
 		    document.addEventListener('touchend', endDrag);
 		})();
+		
+		// 点击精灵球展开
+		document.getElementById('drawingTools').addEventListener('click', (e) => {
+		    const tools = document.getElementById('drawingTools');
+		    if (tools.classList.contains('minimized') && e.target === tools) {
+		        tools.classList.remove('minimized');
+		        // 清除内联样式，工具栏恢复到底部居中
+		        tools.style.left = '';
+		        tools.style.bottom = '';
+		        tools.style.transform = '';
+		    }
+		});
 
 		// 画布缩放功能
 		let scale = 1;
