@@ -1005,7 +1005,7 @@
 			"而今天正好是25号~",
 			"您的刷新次数已达上限，请于0:00后再试",
 			"⬮ ⩊ ⬮	Ϟ(๑⚈ ․̫ ⚈๑)",
-			"⊃(⊙)⊂	o̴̶̷ θ o̴̶̷,	",
+			"⊃(⊙)⊂	o̴̶̷ θ o̴̶̷"	',
 			"26号了，你依旧没有解锁🎄，我很失望",
 			"而今年正好是25年，",
 			"新的500字夸夸在哪里！！",
@@ -1401,8 +1401,10 @@
 		    const ctx = scratchCanvas.getContext('2d');
 		    ctx.globalCompositeOperation = 'source-over';
 		    
-		    // 保存进入绘图前的状态（用于clear功能）
-		    beforeDrawingState = ctx.getImageData(0, 0, scratchCanvas.width, scratchCanvas.height);
+		    // 保存进入绘图前的状态（只在第一次保存，用于clear功能）
+		    if (beforeDrawingState === null) {
+		        beforeDrawingState = ctx.getImageData(0, 0, scratchCanvas.width, scratchCanvas.height);
+		    }
 		    
 		    // 初始化历史记录（保存进入绘图时的状态作为第一个历史）
 		    drawingHistory = [ctx.getImageData(0, 0, scratchCanvas.width, scratchCanvas.height)];
