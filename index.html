@@ -593,19 +593,26 @@
 		.drawing-tools.minimized {
 		    position: fixed;
 		    left: 20px;
-		    bottom: 50%;
-		    transform: translateY(50%);
+		    top: 50%;
+		    transform: translateY(-50%);
 		    width: 60px;
 		    height: 60px;
 		    padding: 0;
 		    border-radius: 50%;
 		    background: linear-gradient(180deg, var(--pokemon-red) 50%, white 50%);
 		    border: 4px solid var(--dark);
-		    cursor: pointer;
+		    cursor: move;
 		    display: flex;
 		    align-items: center;
 		    justify-content: center;
 		    animation: float 3s ease-in-out infinite;
+		    transition: left 0.3s ease, top 0.3s ease;
+		    z-index: 10000;
+		}
+		
+		.drawing-tools.minimized.dragging {
+		    animation: none;
+		    transition: none;
 		}
 		
 		.drawing-tools.minimized::before {
@@ -1469,6 +1476,96 @@
 		    const tools = document.getElementById('drawingTools');
 		    tools.classList.toggle('minimized');
 		});
+		
+		// 精灵球拖拽功能
+		(function initPokeballDrag() {
+		    const tools = document.getElementById('drawingTools');
+		    let isDragging = false;
+		    let startX, startY;
+		    let currentX, currentY;
+		    let hasMoved = false;
+		    
+		    function startDrag(e) {
+		        if (!tools.classList.contains('minimized')) return;
+		        
+		        isDragging = true;
+		        hasMoved = false;
+		        tools.classList.add('dragging');
+		        
+		        const touch = e.type.includes('touch') ? e.touches[0] : e;
+		        const rect = tools.getBoundingClientRect();
+		        
+		        startX = touch.clientX - rect.left;
+		        startY = touch.clientY - rect.top;
+		        
+		        e.preventDefault();
+		    }
+		    
+		    function drag(e) {
+		        if (!isDragging) return;
+		        
+		        hasMoved = true;
+		        const touch = e.type.includes('touch') ? e.touches[0] : e;
+		        
+		        currentX = touch.clientX - startX;
+		        currentY = touch.clientY - startY;
+		        
+		        // 限制在屏幕范围内
+		        const maxX = window.innerWidth - tools.offsetWidth;
+		        const maxY = window.innerHeight - tools.offsetHeight;
+		        
+		        currentX = Math.max(0, Math.min(currentX, maxX));
+		        currentY = Math.max(0, Math.min(currentY, maxY));
+		        
+		        tools.style.left = currentX + 'px';
+		        tools.style.top = currentY + 'px';
+		        
+		        e.preventDefault();
+		    }
+		    
+		    function endDrag(e) {
+		        if (!isDragging) return;
+		        
+		        isDragging = false;
+		        tools.classList.remove('dragging');
+		        
+		        // 如果移动过，吸附到边缘
+		        if (hasMoved) {
+		            snapToEdge();
+		            e.preventDefault();
+		            e.stopPropagation();
+		        }
+		    }
+		    
+		    function snapToEdge() {
+		        const centerX = currentX + tools.offsetWidth / 2;
+		        const screenWidth = window.innerWidth;
+		        
+		        // 判断靠近左边还是右边
+		        if (centerX < screenWidth / 2) {
+		            // 吸附到左边
+		            tools.style.left = '20px';
+		        } else {
+		            // 吸附到右边
+		            tools.style.left = (screenWidth - tools.offsetWidth - 20) + 'px';
+		        }
+		        
+		        // 保持Y位置，但确保在屏幕范围内
+		        const maxY = window.innerHeight - tools.offsetHeight;
+		        currentY = Math.max(0, Math.min(currentY, maxY));
+		        tools.style.top = currentY + 'px';
+		    }
+		    
+		    // 鼠标事件
+		    tools.addEventListener('mousedown', startDrag);
+		    document.addEventListener('mousemove', drag);
+		    document.addEventListener('mouseup', endDrag);
+		    
+		    // 触摸事件
+		    tools.addEventListener('touchstart', startDrag, { passive: false });
+		    document.addEventListener('touchmove', drag, { passive: false });
+		    document.addEventListener('touchend', endDrag);
+		})();
 		
 		// 点击折叠的精灵球展开工具栏
 		document.getElementById('drawingTools').addEventListener('click', (e) => {
