@@ -643,19 +643,20 @@
         }
 
         .color-palette {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-bottom: 10px;
         }
 
         .color-btn {
-            width: 40px;
-            height: 40px;
-            border: 4px solid transparent;
+            width: 35px;
+            height: 35px;
+            border: 3px solid transparent;
             border-radius: 50%;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
         }
 
         .color-btn:hover {
@@ -674,11 +675,11 @@
         .brush-size {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-top: 10px;
+            gap: 8px;
+            margin-top: 8px;
             background: rgba(255, 255, 255, 0.6);
-            padding: 10px;
-            border-radius: 15px;
+            padding: 8px 10px;
+            border-radius: 12px;
         }
 
         .brush-size input {
@@ -692,15 +693,22 @@
             background: linear-gradient(135deg, var(--christmas-green) 0%, #0d8c4a 100%);
             color: white;
             border: 3px solid var(--dark);
-            padding: 12px 20px;
-            border-radius: 20px;
+            padding: 10px 16px;
+            border-radius: 15px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: bold;
             margin-top: 8px;
             transition: all 0.3s ease;
             box-shadow: 0 4px 0 var(--dark), 0 6px 15px rgba(0, 0, 0, 0.2);
             font-family: 'Luckiest Guy', cursive;
+            flex: 1;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 8px;
+            width: 100%;
         }
 
         .tool-btn:hover {
@@ -778,6 +786,24 @@
             cursor: not-allowed;
             transform: none;
         }
+
+        /* 移动端优化 */
+        @media (max-width: 768px) {
+            .color-btn {
+                width: 32px;
+                height: 32px;
+            }
+            
+            .brush-size {
+                padding: 6px 8px;
+                margin-top: 6px;
+            }
+            
+            .tool-btn {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+        }
     </style>
 	
 	<!-- EmailJS 脚本 -->
@@ -838,7 +864,6 @@
                 <span style="font-weight: bold; color: var(--pokemon-red); font-family: 'Press Start 2P', cursive; font-size: 12px;">🎨 PAINT</span>
                 <button id="minimizeTools" style="background: var(--pokemon-yellow); border: 2px solid var(--dark); border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 16px;">➖</button>
             </div>
-            <h4>COLORS</h4>
             <div class="color-palette">
                 <div class="color-btn active" style="background: #ff6b6b;" data-color="#ff6b6b"></div>
                 <div class="color-btn" style="background: #4ecdc4;" data-color="#4ecdc4"></div>
@@ -852,17 +877,19 @@
                 <div class="color-btn" style="background: #ffffff; border: 1px solid #ccc;" data-color="#ffffff"></div>
             </div>
             <div class="brush-size">
-                <span style="font-size: 12px;">🖌️</span>
+                <span style="font-size: 14px;">🖌️</span>
                 <input type="range" id="brushSize" min="5" max="50" value="15">
-                <span style="font-size: 24px;">🖌️</span>
+                <span style="font-size: 20px;">🖌️</span>
             </div>
             <div class="brush-size">
-                <span style="font-size: 12px;">💧</span>
+                <span style="font-size: 14px;">💧</span>
                 <input type="range" id="brushOpacity" min="10" max="100" value="60">
-                <span style="font-size: 24px;">💧</span>
+                <span style="font-size: 20px;">💧</span>
             </div>
-            <button class="tool-btn" id="clearDrawing">CLEAR</button>
-            <button class="tool-btn" id="undoDrawing">UNDO</button>
+            <div class="button-row">
+                <button class="tool-btn" id="clearDrawing">CLEAR</button>
+                <button class="tool-btn" id="undoDrawing">UNDO</button>
+            </div>
             <button class="tool-btn" id="exitDrawing">EXIT</button>
         </div>
 
@@ -966,6 +993,7 @@
 			"⊃(⊙)⊂	o̴̶̷ θ o̴̶̷",
 			"26号了，你依旧没有解锁🎄，我很失望",
 			"而今年正好是25年，",
+			"新的500字夸夸在哪里！！",
         ];
 
         // 随机获取一条消息
@@ -1236,9 +1264,6 @@
 		    ctx.drawImage(tempCanvas, 0, 0);
 		    ctx.globalCompositeOperation = 'source-over';
 		    
-		    // 保存当前状态（包括刮开的部分和绘制的内容）
-		    currentScratchState = ctx.getImageData(0, 0, scratchCanvas.width, scratchCanvas.height);
-		    
 		    // 保存到历史记录（用于撤回）
 		    drawingHistory.push(ctx.getImageData(0, 0, scratchCanvas.width, scratchCanvas.height));
 		    // 限制历史记录数量
@@ -1327,9 +1352,6 @@
 		    ctx.drawImage(tempCanvas, 0, 0);
 		    ctx.globalCompositeOperation = 'source-over';
 		    
-		    // 保存当前状态（包括刮开的部分和绘制的内容）
-		    currentScratchState = ctx.getImageData(0, 0, scratchCanvas.width, scratchCanvas.height);
-		    
 		    // 保存到历史记录（用于撤回）
 		    drawingHistory.push(ctx.getImageData(0, 0, scratchCanvas.width, scratchCanvas.height));
 		    // 限制历史记录数量
@@ -1404,16 +1426,20 @@
             const scratchCanvas = document.getElementById('scratchCanvas');
             const ctx = scratchCanvas.getContext('2d');
             
-            // 恢复进入绘图前的状态（保留已刮开的部分，只清除绘制内容）
-            if (beforeDrawingState) {
-                ctx.putImageData(beforeDrawingState, 0, 0);
+            // 清除所有绘图线条，恢复到刮刮乐状态（不包含任何绘图）
+            if (currentScratchState) {
+                // 恢复到最近的刮刮乐状态（不含绘图线条）
+                ctx.putImageData(currentScratchState, 0, 0);
             } else if (scratchLayerSnapshot) {
-                // 如果还没有进入绘图模式，恢复初始灰色层
+                // 如果还没有刮过，恢复初始灰色层
                 ctx.putImageData(scratchLayerSnapshot, 0, 0);
             } else {
                 // 如果都没有，则完全清除
                 ctx.clearRect(0, 0, scratchCanvas.width, scratchCanvas.height);
             }
+            
+            // 重置历史记录（从当前清空状态开始）
+            drawingHistory = [ctx.getImageData(0, 0, scratchCanvas.width, scratchCanvas.height)];
         });
 
         // 撤回绘图
