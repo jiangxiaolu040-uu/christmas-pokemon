@@ -860,7 +860,7 @@
 
     <!-- 第一页 - 初始图片 -->
     <div id="page1" class="page active">
-        <img src="image1.jpg" alt="点击进入" id="image1">
+        <img src="image1.jpg" alt="召唤礼物" id="image1">
         <div class="hint">⭐ CLICK TO START ⭐</div>
     </div>
 
@@ -950,7 +950,7 @@
 
     <!-- 音频元素 -->
     <audio id="bgMusic" loop>
-        <source src="sad-dramatic-piano-sad-alone-drama-262415.mp3" type="audio/mpeg">		// 更换bgm
+        <source src="sad-dramatic-piano-sad-alone-drama-262415.mp3" type="audio/mpeg">
     </audio>
 
     <script>
@@ -1010,6 +1010,8 @@
 			"而今年正好是25年，",
 			"新的500字夸夸在哪里！！",
 			"热情值→0.0000001😥",
+			"1月将进行版本更新，文本库（也许）大换血",
+			"朋友圈还是半年/(ㄒoㄒ)/~~",
         ];
 
         // 随机获取一条消息
@@ -1059,37 +1061,48 @@
             img.src = 'image2.jpg'; // 替换为你的图片2
             
             img.onload = () => {
-                const maxWidth = window.innerWidth;
-                const maxHeight = window.innerHeight;
-                let width = img.width;
-                let height = img.height;
+                // Canvas尺寸设置为整个屏幕
+                const canvasWidth = window.innerWidth;
+                const canvasHeight = window.innerHeight;
+                
+                imageCanvas.width = canvasWidth;
+                imageCanvas.height = canvasHeight;
+                scratchCanvas.width = canvasWidth;
+                scratchCanvas.height = canvasHeight;
 
-				if (width > maxWidth) {
-    				height = (maxWidth / width) * height;
-    				width = maxWidth;
-				}
-				if (height > maxHeight) {
-				    width = (maxHeight / height) * width;
-				    height = maxHeight;
-				}
+                // 计算图片在canvas中的位置和尺寸（保持比例，居中显示）
+                const imgRatio = img.width / img.height;
+                const canvasRatio = canvasWidth / canvasHeight;
+                
+                let drawWidth, drawHeight, drawX, drawY;
+                
+                if (imgRatio > canvasRatio) {
+                    // 图片更宽，以宽度为准
+                    drawWidth = canvasWidth;
+                    drawHeight = canvasWidth / imgRatio;
+                    drawX = 0;
+                    drawY = (canvasHeight - drawHeight) / 2;
+                } else {
+                    // 图片更高，以高度为准
+                    drawHeight = canvasHeight;
+                    drawWidth = canvasHeight * imgRatio;
+                    drawX = (canvasWidth - drawWidth) / 2;
+                    drawY = 0;
+                }
 
-                imageCanvas.width = width;
-                imageCanvas.height = height;
-                scratchCanvas.width = width;
-                scratchCanvas.height = height;
+                // 绘制图片（居中，保持比例）
+                imageCtx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
 
-                imageCtx.drawImage(img, 0, 0, width, height);
-
-                // 灰色遮罩
+                // 灰色遮罩（覆盖整个canvas，即整个屏幕）
                 scratchCtx.fillStyle = '#808080';
-                scratchCtx.fillRect(0, 0, width, height);
+                scratchCtx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-                // 保存灰色遮罩层的快照（用于清除绘图时恢复）
-                scratchLayerSnapshot = scratchCtx.getImageData(0, 0, width, height);
+                // 保存灰色遮罩层的快照
+                scratchLayerSnapshot = scratchCtx.getImageData(0, 0, canvasWidth, canvasHeight);
 
                 let isScratching = false;
                 let scratchedPixels = 0;
-                const totalPixels = width * height;
+                const totalPixels = canvasWidth * canvasHeight;
 
                 function scratch(e) {
                     if (!isScratching || isDrawingMode) return;
@@ -1107,7 +1120,7 @@
                 }
 
                 function updateProgress() {
-                    const imageData = scratchCtx.getImageData(0, 0, width, height);
+                    const imageData = scratchCtx.getImageData(0, 0, canvasWidth, canvasHeight);
                     let transparentPixels = 0;
 
                     for (let i = 3; i < imageData.data.length; i += 4) {
@@ -1173,7 +1186,7 @@
             };
 
             img.onerror = () => {
-                alert('图片2加载失败，请稍后再试');
+                alert('礼物加载失败，请稍后再试');		//图片2失败
             };
         }
 
@@ -1298,6 +1311,8 @@
 		    if (!isDrawingMode) return;
 		    // 如果是双指缩放，不绘制
 		    if (e.touches.length >= 2) return;
+		    // 如果正在平移画布，不绘制
+		    if (isPanning) return;
 		    e.preventDefault();
 		    const touch = e.touches[0];
 		    const scratchCanvas = document.getElementById('scratchCanvas');
@@ -1323,6 +1338,11 @@
 		    if (!isDrawingMode || !isDrawing) return;
 		    // 如果是双指缩放，停止绘制
 		    if (e.touches.length >= 2) {
+		        isDrawing = false;
+		        return;
+		    }
+		    // 如果正在平移画布，停止绘制
+		    if (isPanning) {
 		        isDrawing = false;
 		        return;
 		    }
@@ -1630,25 +1650,40 @@
 		    }
 		});
 
-		// 画布缩放功能
+		// 画布缩放和平移功能
 		let scale = 1;
+		let translateX = 0;
+		let translateY = 0;
 		let isPinching = false;
+		let isPanning = false;
 		let lastDistance = 0;
+		let lastTouchX = 0;
+		let lastTouchY = 0;
+		let panStartTime = 0;
 		
 		document.getElementById('scratchCanvas').addEventListener('touchstart', (e) => {
 		    if (e.touches.length === 2 && isDrawingMode) {
+		        // 双指：缩放
 		        isPinching = true;
+		        isPanning = false;
 		        const touch1 = e.touches[0];
 		        const touch2 = e.touches[1];
 		        lastDistance = Math.hypot(
 		            touch2.clientX - touch1.clientX,
 		            touch2.clientY - touch1.clientY
 		        );
+		    } else if (e.touches.length === 1 && isDrawingMode && scale !== 1) {
+		        // 单指且已缩放：准备平移（延迟100ms判断是否真的要平移）
+		        panStartTime = Date.now();
+		        const touch = e.touches[0];
+		        lastTouchX = touch.clientX;
+		        lastTouchY = touch.clientY;
 		    }
 		});
 		
 		document.getElementById('scratchCanvas').addEventListener('touchmove', (e) => {
 		    if (isPinching && e.touches.length === 2 && isDrawingMode) {
+		        // 双指缩放
 		        e.preventDefault();
 		        const touch1 = e.touches[0];
 		        const touch2 = e.touches[1];
@@ -1662,15 +1697,117 @@
 		        scale = Math.min(Math.max(0.5, scale), 3); // 限制在0.5-3倍
 		        
 		        const canvasContainer = document.querySelector('.canvas-container');
-		        canvasContainer.style.transform = `scale(${scale})`;
+		        canvasContainer.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
 		        
 		        lastDistance = distance;
+		    } else if (e.touches.length === 1 && isDrawingMode && scale !== 1) {
+		        // 单指移动且已缩放
+		        const touch = e.touches[0];
+		        const deltaX = touch.clientX - lastTouchX;
+		        const deltaY = touch.clientY - lastTouchY;
+		        const moveDistance = Math.hypot(deltaX, deltaY);
+		        
+		        // 如果移动距离>5px或已经在平移中，判定为平移而非绘画
+		        if (moveDistance > 5 || isPanning) {
+		            e.preventDefault();
+		            isPanning = true;
+		            
+		            translateX += deltaX;
+		            translateY += deltaY;
+		            
+		            const canvasContainer = document.querySelector('.canvas-container');
+		            canvasContainer.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+		            
+		            lastTouchX = touch.clientX;
+		            lastTouchY = touch.clientY;
+		        }
 		    }
 		});
 		
-		document.getElementById('scratchCanvas').addEventListener('touchend', () => {
+		document.getElementById('scratchCanvas').addEventListener('touchend', (e) => {
 		    isPinching = false;
+		    // 如果touchend时touches为空，说明所有手指都离开了
+		    if (e.touches.length === 0) {
+		        isPanning = false;
+		    }
 		});
+		// 鼠标平移支持（按住空格键+拖拽，或中键拖拽）
+		let isSpacePressed = false;
+		let isMousePanning = false;
+		let lastMouseX = 0;
+		let lastMouseY = 0;
+		
+		// 监听空格键
+		document.addEventListener('keydown', (e) => {
+		    if (e.code === 'Space' && isDrawingMode && scale !== 1) {
+		        e.preventDefault();
+		        isSpacePressed = true;
+		        document.getElementById('scratchCanvas').style.cursor = 'grab';
+		    }
+		});
+		
+		document.addEventListener('keyup', (e) => {
+		    if (e.code === 'Space') {
+		        isSpacePressed = false;
+		        isMousePanning = false;
+		        if (isDrawingMode) {
+		            document.getElementById('scratchCanvas').style.cursor = 'crosshair';
+		        }
+		    }
+		});
+		
+		// 鼠标平移
+		document.getElementById('scratchCanvas').addEventListener('mousedown', (e) => {
+		    if ((isSpacePressed || e.button === 1) && isDrawingMode && scale !== 1) {
+		        e.preventDefault();
+		        isMousePanning = true;
+		        lastMouseX = e.clientX;
+		        lastMouseY = e.clientY;
+		        document.getElementById('scratchCanvas').style.cursor = 'grabbing';
+		    }
+		});
+		
+		document.addEventListener('mousemove', (e) => {
+		    if (isMousePanning && isDrawingMode) {
+		        e.preventDefault();
+		        const deltaX = e.clientX - lastMouseX;
+		        const deltaY = e.clientY - lastMouseY;
+		        
+		        translateX += deltaX;
+		        translateY += deltaY;
+		        
+		        const canvasContainer = document.querySelector('.canvas-container');
+		        canvasContainer.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+		        
+		        lastMouseX = e.clientX;
+		        lastMouseY = e.clientY;
+		    }
+		});
+		
+		document.addEventListener('mouseup', (e) => {
+		    if (isMousePanning) {
+		        isMousePanning = false;
+		        if (isSpacePressed && isDrawingMode) {
+		            document.getElementById('scratchCanvas').style.cursor = 'grab';
+		        } else if (isDrawingMode) {
+		            document.getElementById('scratchCanvas').style.cursor = 'crosshair';
+		        }
+		    }
+		});
+		
+		// 鼠标滚轮缩放（Ctrl+滚轮）
+		document.getElementById('scratchCanvas').addEventListener('wheel', (e) => {
+		    if (e.ctrlKey && isDrawingMode) {
+		        e.preventDefault();
+		        
+		        const delta = -e.deltaY * 0.01;
+		        scale += delta;
+		        scale = Math.min(Math.max(0.5, scale), 3);
+		        
+		        const canvasContainer = document.querySelector('.canvas-container');
+		        canvasContainer.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+		    }
+		}, { passive: false });
 		
 		// 退出绘图模式
 		document.getElementById('exitDrawing').addEventListener('click', () => {
@@ -1678,9 +1815,11 @@
 		    document.getElementById('drawingTools').classList.remove('active');
 		    document.querySelector('.progress-bar').style.display = 'block';
 		    
-		    // 重置缩放
+		    // 重置缩放和平移
 		    scale = 1;
-		    document.querySelector('.canvas-container').style.transform = 'scale(1)';
+		    translateX = 0;
+		    translateY = 0;
+		    document.querySelector('.canvas-container').style.transform = 'translate(0px, 0px) scale(1)';
 		});
 
         // 按钮3 - 反馈表单
@@ -1716,7 +1855,7 @@
 		        ).then(
 		            function(response) {
 		                console.log('发送成功！', response.status, response.text);
-		                alert('OK.I will check email soon.');
+		                alert('OK.I will check email after 1.3.');
 		                closeModal('feedbackModal');
 		                document.getElementById('feedbackText').value = '';
 		                document.getElementById('charCount').textContent = '0';
